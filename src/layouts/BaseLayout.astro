@@ -1,0 +1,105 @@
+---
+import '../styles/global.css';
+import { primaryNav } from '../data/categories';
+import { withBase } from '../utils/url';
+
+interface Props {
+  title: string;
+  description?: string;
+  activePath?: string;
+}
+
+const {
+  title,
+  description = 'A mobile-friendly guide to Low-Level Design patterns, SOLID principles, and OOP fundamentals with side-by-side Python and Java examples.',
+  activePath = '',
+} = Astro.props;
+
+const pageTitle = title === 'LLD Patterns Hub' ? title : `${title} · LLD Patterns Hub`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <!-- Set theme before paint to avoid a flash of the wrong theme -->
+    <script is:inline>
+      (function () {
+        var saved = localStorage.getItem('lld-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="visually-hidden" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href={withBase('/')}>
+          <span class="logo-mark">🧠</span>
+          <span>LLD Patterns Hub</span>
+        </a>
+
+        <nav class="nav-links" aria-label="Primary">
+          {primaryNav.map((item) => (
+            <a href={withBase(item.path)} aria-current={activePath === item.path ? 'page' : undefined}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        <div class="header-actions">
+          <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+          <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+        </div>
+      </div>
+
+      <div id="nav-drawer">
+        {primaryNav.map((item) => (
+          <a class="drawer-link" href={withBase(item.path)}>{item.label}</a>
+        ))}
+      </div>
+    </header>
+
+    <main id="main-content">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>© {new Date().getFullYear()} LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+        <span>
+          <a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+        </span>
+      </div>
+    </footer>
+
+    <script src="../scripts/site.js"></script>
+  </body>
+</html>
+
+<style>
+  .visually-hidden {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--color-accent);
+    color: #fff;
+    padding: 10px 16px;
+    z-index: 100;
+  }
+  .visually-hidden:focus {
+    left: 12px;
+    top: 12px;
+  }
+</style>

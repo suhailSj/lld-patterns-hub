@@ -1,0 +1,43 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PatternCard from './PatternCard.astro';
+import { categories, type CategoryKey } from '../data/categories';
+import { withBase } from '../utils/url';
+
+interface Props {
+  categoryKey: CategoryKey;
+}
+const { categoryKey } = Astro.props;
+const category = categories.find((c) => c.key === categoryKey)!;
+const entries = (await getCollection(categoryKey)).sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout title={category.label} description={category.description} activePath={category.path}>
+  <div class="layout-shell no-sidebar">
+    <div class="content">
+      <p class="breadcrumb"><a href={withBase('/')}>Home</a> / {category.label}</p>
+      <h1>{category.icon} {category.label}</h1>
+      <p class="summary-lede">{category.description}</p>
+
+      <input
+        class="filter-box"
+        type="search"
+        placeholder={`Filter ${category.label.toLowerCase()}...`}
+        data-filter-target=".card-grid .card"
+        aria-label={`Filter ${category.label}`}
+      />
+
+      <div class="card-grid">
+        {entries.map((e) => (
+          <PatternCard
+            title={e.data.title}
+            summary={e.data.summary}
+            path={`${category.path}${e.id}/`}
+            tags={e.data.tags}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+</BaseLayout>

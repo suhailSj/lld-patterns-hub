@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../utils/url';
+---
+
+<BaseLayout title="About / Resources" activePath="/about/"
+  description="What LLD Patterns Hub is, how to use it for interview prep, and where to go deeper.">
+  <div class="layout-shell no-sidebar">
+    <div class="content">
+      <p class="breadcrumb"><a href={withBase('/')}>Home</a> / About</p>
+      <article class="prose">
+        <h1>About this site</h1>
+        <p class="summary-lede">
+          LLD Patterns Hub is a static, open-source reference for Low-Level Design: the SOLID principles, the
+          classic Gang-of-Four creational/structural/behavioral patterns, and the OOP fundamentals underneath them —
+          built for engineers preparing for design interviews and for anyone who wants a working refresher.
+        </p>
+
+        <h2>How to use it</h2>
+        <ul>
+          <li>New to LLD? Start with <a href={withBase('/fundamentals/')}>Fundamentals</a>, then <a href={withBase('/solid/')}>SOLID</a> before the pattern families.</li>
+          <li>Cramming for an interview this week? Go straight to the <a href={withBase('/cheatsheet/')}>Cheat Sheet</a> for the comparisons interviewers love to ask about.</li>
+          <li>Already know the theory? Use the Python/Java tabs on each pattern page to see how the same design reads in a statically-typed vs. dynamically-typed language.</li>
+        </ul>
+
+        <h2>Design decisions</h2>
+        <ul>
+          <li>Every code example models a realistic domain (payments, ride booking, notifications, document editors, caching, auth) instead of <code>Animal</code>/<code>Shape</code> toy classes.</li>
+          <li>Python and Java examples solve the <em>same</em> scenario with the same class/method names wherever the languages allow it, so the two tabs are directly comparable.</li>
+          <li>The site is a static Astro build — no server, no database, so it's free to host on GitHub Pages and fast on mobile networks.</li>
+        </ul>
+
+        <h2>Further reading</h2>
+        <ul>
+          <li>Erich Gamma, Richard Helm, Ralph Johnson, John Vlissides — <em>Design Patterns: Elements of Reusable Object-Oriented Software</em> (the original "Gang of Four" book).</li>
+          <li>Robert C. Martin — <em>Agile Software Development, Principles, Patterns, and Practices</em> (source of the SOLID acronym).</li>
+          <li>Refactoring.Guru — free illustrated pattern reference, good for a second explanation of any pattern here.</li>
+        </ul>
+
+        <h2>Contributing</h2>
+        <p>
+          This site's content lives as Markdown/MDX files under <code>src/content/&lt;category&gt;/</code>. Adding a new
+          pattern is usually just: add one <code>.mdx</code> file following the existing template, and it appears in
+          the category index and sidebar automatically. See the project <code>README.md</code> for local setup.
+        </p>
+      </article>
+    </div>
+  </div>
+</BaseLayout>

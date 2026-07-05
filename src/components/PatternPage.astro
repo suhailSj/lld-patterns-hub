@@ -1,0 +1,30 @@
+---
+import { render } from 'astro:content';
+import PatternLayout from '../layouts/PatternLayout.astro';
+import { categories, type CategoryKey } from '../data/categories';
+import { buildSidebarItems, getPagerFor } from '../utils/collection';
+
+interface Props {
+  categoryKey: CategoryKey;
+  entry: any;
+  all: any[];
+}
+const { categoryKey, entry, all } = Astro.props;
+const category = categories.find((c) => c.key === categoryKey)!;
+const { Content } = await render(entry);
+const sidebarItems = buildSidebarItems(all, category.path);
+const { prev, next } = getPagerFor(all, entry.id, category.path);
+---
+
+<PatternLayout
+  title={entry.data.title}
+  summary={entry.data.summary}
+  tags={entry.data.tags}
+  categoryKey={categoryKey}
+  currentPath={`${category.path}${entry.id}/`}
+  sidebarItems={sidebarItems}
+  prevItem={prev}
+  nextItem={next}
+>
+  <Content />
+</PatternLayout>

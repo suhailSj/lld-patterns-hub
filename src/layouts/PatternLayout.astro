@@ -1,0 +1,77 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { withBase } from '../utils/url';
+import { categories } from '../data/categories';
+
+interface SidebarItem { id: string; title: string; path: string; order: number }
+
+interface Props {
+  title: string;
+  summary: string;
+  tags?: string[];
+  categoryKey: 'fundamentals' | 'solid' | 'creational' | 'structural' | 'behavioral';
+  currentPath: string;
+  sidebarItems: SidebarItem[];
+  prevItem?: { title: string; path: string } | null;
+  nextItem?: { title: string; path: string } | null;
+}
+
+const { title, summary, tags = [], categoryKey, currentPath, sidebarItems, prevItem = null, nextItem = null } = Astro.props;
+const category = categories.find((c) => c.key === categoryKey)!;
+---
+
+<BaseLayout title={title} description={summary} activePath={category.path}>
+  <div class="layout-shell">
+    <aside class="sidebar" id="pattern-sidebar">
+      <button class="sidebar-toggle" aria-expanded="false">
+        <span>📖 {category.label}</span>
+        <span aria-hidden="true">▾</span>
+      </button>
+      <h4>{category.label}</h4>
+      <ul class="sidebar-list">
+        {sidebarItems
+          .sort((a, b) => a.order - b.order)
+          .map((item) => (
+            <li>
+              <a href={withBase(item.path)} aria-current={currentPath === item.path ? 'page' : undefined}>
+                {item.title}
+              </a>
+            </li>
+          ))}
+      </ul>
+    </aside>
+
+    <div class="content">
+      <p class="breadcrumb">
+        <a href={withBase('/')}>Home</a> / <a href={withBase(category.path)}>{category.label}</a> / {title}
+      </p>
+
+      <article class="prose">
+        <h1>{title}</h1>
+        {tags.length > 0 && (
+          <div class="pattern-meta">
+            {tags.map((t) => <span class="tag">{t}</span>)}
+          </div>
+        )}
+        <p class="summary-lede">{summary}</p>
+
+        <slot />
+      </article>
+
+      <nav class="pattern-pager" aria-label="Pattern navigation">
+        {prevItem ? (
+          <a href={withBase(prevItem.path)}>
+            <div class="dir">← Previous</div>
+            <div>{prevItem.title}</div>
+          </a>
+        ) : <span />}
+        {nextItem ? (
+          <a href={withBase(nextItem.path)} class="to-next">
+            <div class="dir">Next →</div>
+            <div>{nextItem.title}</div>
+          </a>
+        ) : <span />}
+      </nav>
+    </div>
+  </div>
+</BaseLayout>

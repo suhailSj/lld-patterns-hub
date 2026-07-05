@@ -1,0 +1,30 @@
+---
+// Usage inside an .mdx content file (flush-left fences, no indentation):
+//
+// import CodeTabs from '../../components/CodeTabs.astro';
+//
+// <CodeTabs>
+//
+// ```python
+// ...
+// ```
+//
+// ```java
+// ...
+// ```
+//
+// </CodeTabs>
+//
+// Astro's Shiki renderer tags each <pre> with data-language="python" / "java",
+// which is what the global site.js script uses to wire up the tab buttons.
+---
+
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <slot />
+  </div>
+</div>

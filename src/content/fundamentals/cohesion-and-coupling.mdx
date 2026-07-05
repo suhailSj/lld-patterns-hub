@@ -1,0 +1,203 @@
+---
+title: "Cohesion and Coupling"
+order: 6
+summary: "The two forces that determine how maintainable a design is: how tightly related a class's own responsibilities are (cohesion), and how tangled it is with other classes (coupling)."
+tags: ["Fundamentals", "architecture", "order processing"]
+useWhen: "Explaining why a design is hard to change, or evaluating whether a proposed split of a class is actually an improvement."
+---
+import CodeTabs from '../../components/CodeTabs.astro';
+import Callout from '../../components/Callout.astro';
+import { withBase } from '../../utils/url';
+
+## Intent / definition
+
+**Cohesion** measures how closely related the responsibilities *within* a single class are — high cohesion means
+everything in the class serves one clear purpose. **Coupling** measures how much classes depend on each other's
+internals — low coupling means classes can change independently without breaking one another. The goal in good
+design is always the same shape: **high cohesion, low coupling**.
+
+## Problem statement
+
+Revisit the <a href={withBase('/solid/srp/')}>Single Responsibility Principle</a> order-processing example: an
+`Order` class originally calculated totals, saved to the database, and sent email receipts, all in one place. That
+example was framed around "reasons to change." Cohesion and coupling are the underlying metrics that explain
+*why* that design was bad and the split version is better.
+
+## Why the naive design fails (in cohesion/coupling terms)
+
+<Callout type="pitfall" title="Low cohesion, tight coupling — the worst of both">
+The original `Order` class had **low cohesion**: pricing math, SQL, and SMTP calls have nothing to do with each
+other conceptually, yet were bundled into one class. It also created **tight coupling**: any code that used `Order`
+for its pricing logic was forced to also depend on (and instantiate/mock) its database and email logic, whether it
+needed them or not.
+</Callout>
+
+## Solution overview
+
+Splitting into `OrderPricingCalculator`, `OrderRepository`, and `ReceiptNotifier` (see SRP) raises cohesion — each
+class now does exactly one conceptually related thing — and lowers coupling, since each class depends on the others
+only through small, explicit interfaces (or not at all). `OrderService` coordinates them, but even it depends only on
+abstractions, not concrete implementations (see <a href={withBase('/solid/dip/')}>DIP</a>).
+
+## Step-by-step explanation
+
+1. For a given class, list its methods and ask: "do these all serve the same one purpose?" If not, cohesion is low.
+2. For a given class, list every other concrete class it directly references. If that list is long, or includes
+   classes unrelated to its core job, coupling is high.
+3. Split low-cohesion classes along their natural, independent responsibilities.
+4. Reduce coupling between the resulting classes by depending on interfaces (see
+   <a href={withBase('/fundamentals/interfaces-vs-abstract-classes/')}>Interfaces vs. Abstract Classes</a>) instead
+   of concrete classes wherever the dependency crosses a conceptual boundary.
+
+## Python example
+
+<CodeTabs>
+
+```python
+# LOW cohesion, TIGHT coupling: one class, three unrelated concerns,
+# and anything using it drags in a live DB + SMTP dependency.
+class OrderBad:
+    def __init__(self, db_connection, smtp_client):
+        self.db = db_connection
+        self.smtp = smtp_client
+
+    def calculate_total(self, line_items):
+        return sum(price * qty for _, price, qty in line_items)
+
+    def save(self, order_id, total):
+        self.db.execute(f"INSERT INTO orders VALUES ({order_id}, {total})")
+
+    def email_receipt(self, email, total):
+        self.smtp.send(email, f"Your total: ${total}")
+
+
+# HIGH cohesion, LOOSE coupling: each class has one job and depends on
+# nothing beyond what it truly needs — no class here even imports the others' internals.
+class OrderPricingCalculator:
+    def calculate_total(self, line_items: list[tuple[str, float, int]]) -> float:
+        return sum(price * qty for _, price, qty in line_items)
+
+
+class OrderRepository:
+    def __init__(self, db_connection):
+        self._db = db_connection  # only this class touches the database
+
+    def save(self, order_id: str, total: float) -> None:
+        self._db.execute(f"INSERT INTO orders VALUES ({order_id}, {total})")
+
+
+class ReceiptNotifier:
+    def __init__(self, smtp_client):
+        self._smtp = smtp_client  # only this class touches SMTP
+
+    def email_receipt(self, email: str, total: float) -> None:
+        self._smtp.send(email, f"Your total: ${total}")
+```
+
+```java
+// LOW cohesion, TIGHT coupling: one class, three unrelated concerns,
+// and anything using it drags in a live DB + SMTP dependency.
+class OrderBad {
+    private final Object dbConnection;
+    private final Object smtpClient;
+
+    OrderBad(Object dbConnection, Object smtpClient) {
+        this.dbConnection = dbConnection;
+        this.smtpClient = smtpClient;
+    }
+
+    double calculateTotal(java.util.List<double[]> lineItems) {
+        return lineItems.stream().mapToDouble(li -> li[0] * li[1]).sum();
+    }
+
+    void save(String orderId, double total) { /* touches dbConnection directly */ }
+    void emailReceipt(String email, double total) { /* touches smtpClient directly */ }
+}
+
+// HIGH cohesion, LOOSE coupling: each class has one job and depends on
+// nothing beyond what it truly needs — no class here even references the others' internals.
+class OrderPricingCalculator {
+    double calculateTotal(java.util.List<double[]> lineItems) {
+        return lineItems.stream().mapToDouble(li -> li[0] * li[1]).sum();
+    }
+}
+
+class OrderRepository {
+    private final Object dbConnection; // only this class touches the database
+    OrderRepository(Object dbConnection) { this.dbConnection = dbConnection; }
+
+    void save(String orderId, double total) { /* ... */ }
+}
+
+class ReceiptNotifier {
+    private final Object smtpClient; // only this class touches SMTP
+    ReceiptNotifier(Object smtpClient) { this.smtpClient = smtpClient; }
+
+    void emailReceipt(String email, double total) { /* ... */ }
+}
+```
+
+</CodeTabs>
+
+**Language notes:** cohesion and coupling are design properties, not language features — both examples show the same
+improvement in either language. Statically typed languages like Java make tight coupling slightly more visible at
+compile time (import statements and constructor parameter types make dependencies explicit); Python's dynamic typing
+means tight coupling can hide more easily until it's exercised at runtime, which is one more reason disciplined
+constructor-based dependencies (see <a href={withBase('/fundamentals/dependency-injection/')}>Dependency
+Injection</a>) matter even more in Python codebases.
+
+## Real-world example
+
+Microservice architectures are, at the system level, an application of "high cohesion, low coupling": each service
+owns one cohesive business capability (orders, inventory, payments) and communicates with others only through small,
+versioned APIs — never by reaching into another service's database directly.
+
+## Pros of high cohesion / low coupling
+
+<div class="pros-cons">
+<div>
+<h4>✅ Benefits</h4>
+<ul>
+<li>Changes stay localized — a pricing rule change can't accidentally break email sending</li>
+<li>Classes are independently testable and reusable</li>
+<li>New engineers can understand one class without loading the whole subsystem into their head</li>
+</ul>
+</div>
+<div>
+<h4>❌ Tradeoffs of over-splitting</h4>
+<ul>
+<li>Excessive splitting in the name of cohesion can create so many tiny classes that the overall *system* becomes harder to navigate, even if each piece is individually simple</li>
+<li>Some coupling is unavoidable and healthy — a coordinator class (like <code>OrderService</code>) is necessarily coupled to the pieces it orchestrates</li>
+</ul>
+</div>
+</div>
+
+## When to use this lens
+
+- Reviewing whether a proposed class split is actually an improvement (does it raise cohesion / lower coupling, or
+  just move code around?).
+- Diagnosing why a codebase feels hard to change — usually traceable to specific low-cohesion or tightly-coupled
+  classes.
+
+## When to avoid over-applying it
+
+- Don't split a genuinely cohesive class further just to make it smaller — cohesion is about *conceptual*
+  relatedness, not line count.
+
+<Callout type="tip" title="Interview framing">
+"High cohesion, low coupling" is the single most reusable phrase in an LLD interview — nearly every SOLID principle
+and structural pattern can be explained as a specific technique for improving one or both.
+</Callout>
+
+## Interview talking points
+
+- When justifying any refactor, name which of the two (cohesion, coupling) it improves and how — vague "this is
+  cleaner" answers are far weaker than "this raises cohesion because X now only depends on Y."
+- Be ready to point out when a proposed split *doesn't* actually help — e.g. splitting a class purely by method count
+  rather than by responsibility often makes coupling worse, not better.
+
+## Related patterns
+
+- <a href={withBase('/solid/srp/')}>Single Responsibility Principle</a> — the SOLID principle most directly about cohesion.
+- <a href={withBase('/solid/dip/')}>Dependency Inversion Principle</a> and <a href={withBase('/fundamentals/dependency-injection/')}>Dependency Injection</a> — the primary tools for reducing coupling between classes.
+- <a href={withBase('/structural/facade/')}>Facade</a> — reduces coupling between client code and a whole subsystem at once.

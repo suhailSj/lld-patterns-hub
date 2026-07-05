@@ -1,0 +1,213 @@
+---
+title: "Abstraction, Encapsulation & Polymorphism"
+order: 2
+summary: "The three pillars underneath every pattern on this site, grounded in one running media-player example."
+tags: ["Fundamentals", "OOP", "media player"]
+useWhen: "You need to explain what these terms actually mean with a concrete example, not just a definition."
+---
+import CodeTabs from '../../components/CodeTabs.astro';
+import Callout from '../../components/Callout.astro';
+import { withBase } from '../../utils/url';
+
+## Intent / definition
+
+Three ideas get grouped together as "the pillars of OOP" (a fourth, inheritance, is covered on its own in
+<a href={withBase('/fundamentals/composition-vs-inheritance/')}>Composition vs. Inheritance</a>):
+
+- **Abstraction** — expose *what* something does, hide *how*. Callers depend on a simple interface, not internal detail.
+- **Encapsulation** — bundle data with the methods that operate on it, and control access so internal state can't be
+  put into an invalid condition from outside.
+- **Polymorphism** — different concrete types can be used interchangeably through a shared interface, each responding
+  to the same call in its own way.
+
+These aren't independent — they reinforce each other, as the example below shows.
+
+## Problem statement
+
+A media player needs to support audio and video playback. Client code (a play/pause UI) should work identically
+regardless of what's loaded, internal buffering state shouldn't be corruptible from outside the class, and adding a
+new media type shouldn't require changing the UI code.
+
+## Why skipping these fails
+
+<Callout type="pitfall" title="What it looks like without the pillars">
+Without abstraction, UI code would need `if media_type == "audio": ... elif media_type == "video": ...` everywhere
+playback is triggered. Without encapsulation, any code anywhere could set `player.buffer_position = -400`, an
+invalid state, since nothing guards it. Without polymorphism, adding a new media type (a livestream) means editing
+every `if/elif` chain across the codebase instead of adding one new class.
+</Callout>
+
+## Solution overview
+
+- **Abstraction:** define a `MediaPlayer` interface with `play()`/`pause()`. Callers depend only on that.
+- **Encapsulation:** keep buffering state (`_buffer_position`) private, expose it only through validated methods.
+- **Polymorphism:** `AudioPlayer` and `VideoPlayer` both implement `MediaPlayer`; a `List[MediaPlayer]` can hold both,
+  and calling `.play()` on each does the right thing for its type without the caller checking which one it is.
+
+## Python example
+
+<CodeTabs>
+
+```python
+from abc import ABC, abstractmethod
+
+
+class MediaPlayer(ABC):
+    """Abstraction: callers depend on this interface, not on AudioPlayer/VideoPlayer directly."""
+
+    @abstractmethod
+    def play(self) -> None: ...
+
+    @abstractmethod
+    def pause(self) -> None: ...
+
+
+class AudioPlayer(MediaPlayer):
+    def __init__(self, track_name: str):
+        self.track_name = track_name
+        self._buffer_position = 0  # "private" by convention (leading underscore)
+
+    def play(self) -> None:
+        print(f"Playing audio: {self.track_name} from {self._buffer_position}s")
+
+    def pause(self) -> None:
+        print(f"Paused audio at {self._buffer_position}s")
+
+    def seek(self, seconds: int) -> None:
+        # Encapsulation: the only way to change _buffer_position — validates the input.
+        if seconds < 0:
+            raise ValueError("Cannot seek to a negative position")
+        self._buffer_position = seconds
+
+
+class VideoPlayer(MediaPlayer):
+    def __init__(self, title: str):
+        self.title = title
+
+    def play(self) -> None:
+        print(f"Playing video: {self.title} (with subtitles loaded)")
+
+    def pause(self) -> None:
+        print(f"Paused video: {self.title}")
+
+
+def play_all(players: list[MediaPlayer]) -> None:
+    # Polymorphism: same call, different behavior per concrete type — no isinstance checks needed.
+    for player in players:
+        player.play()
+
+
+# --- usage ---
+play_all([AudioPlayer("Bach - Cello Suite No.1"), VideoPlayer("Conference Keynote")])
+```
+
+```java
+interface MediaPlayer {
+    // Abstraction: callers depend on this interface, not on AudioPlayer/VideoPlayer directly.
+    void play();
+    void pause();
+}
+
+class AudioPlayer implements MediaPlayer {
+    private final String trackName;
+    private int bufferPosition = 0; // private: encapsulated, not directly settable from outside
+
+    AudioPlayer(String trackName) { this.trackName = trackName; }
+
+    public void play() {
+        System.out.println("Playing audio: " + trackName + " from " + bufferPosition + "s");
+    }
+
+    public void pause() {
+        System.out.println("Paused audio at " + bufferPosition + "s");
+    }
+
+    // Encapsulation: the only way to change bufferPosition — validates the input.
+    public void seek(int seconds) {
+        if (seconds < 0) throw new IllegalArgumentException("Cannot seek to a negative position");
+        this.bufferPosition = seconds;
+    }
+}
+
+class VideoPlayer implements MediaPlayer {
+    private final String title;
+    VideoPlayer(String title) { this.title = title; }
+
+    public void play() {
+        System.out.println("Playing video: " + title + " (with subtitles loaded)");
+    }
+
+    public void pause() {
+        System.out.println("Paused video: " + title);
+    }
+}
+
+class PlaylistTools {
+    // Polymorphism: same call, different behavior per concrete type — no instanceof checks needed.
+    static void playAll(java.util.List<MediaPlayer> players) {
+        for (MediaPlayer player : players) player.play();
+    }
+}
+
+// --- usage ---
+// PlaylistTools.playAll(List.of(new AudioPlayer("Bach - Cello Suite No.1"), new VideoPlayer("Conference Keynote")));
+```
+
+</CodeTabs>
+
+**Language notes:** Java enforces encapsulation with real access modifiers (`private` genuinely blocks outside
+access, checked by the compiler). Python's leading underscore (`_buffer_position`) is a *convention*, not enforced —
+any code can still technically set `player._buffer_position = -400` directly. Python does have "name mangling" with
+double-underscore prefixes (`__buffer_position`) for a slightly stronger (still not absolute) form of privacy, but
+the community norm is to trust the underscore convention rather than fight the language.
+
+## Real-world example
+
+A car's pedals are abstraction and encapsulation in the physical world: pressing the accelerator doesn't require
+understanding fuel injection timing (abstraction), and you can't reach in and directly manipulate the engine's
+internals through the pedal (encapsulation). Polymorphism shows up whenever code works uniformly across different
+drivers — cruise control works the same way whether the "engine" underneath is a gas engine or an electric motor.
+
+## Pros
+
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Abstraction reduces what callers need to know to use a class correctly</li>
+<li>Encapsulation prevents invalid internal states, localizing validation logic</li>
+<li>Polymorphism lets new types be added without touching code that already works with the shared interface</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Over-applying abstraction ("everything needs an interface") adds indirection without payoff for genuinely simple, stable code</li>
+<li>Excessive encapsulation (getters/setters for every field with no real invariant to protect) is ceremony without benefit</li>
+</ul>
+</div>
+</div>
+
+## When to use
+
+- Abstraction: whenever client code shouldn't need to know which concrete implementation it's using.
+- Encapsulation: whenever a class has internal state with rules about what's valid (ranges, required combinations,
+  ordering).
+- Polymorphism: whenever the same operation needs to behave differently depending on runtime type.
+
+## When to avoid
+
+- Don't wrap a field in a getter/setter pair "for encapsulation" if there's no actual invariant to protect — a public
+  field is fine for a plain data holder with no rules.
+
+## Interview talking points
+
+- Ground each pillar in a concrete example rather than reciting the definition — interviewers consistently reward
+  "here's what breaks without it" over dictionary answers.
+- Be ready to say which pillar a given design choice demonstrates when reviewing someone else's (or your own) code in
+  an interview.
+
+## Related patterns
+
+- Nearly every pattern on this site is an application of one or more of these pillars — <a href={withBase('/behavioral/strategy/')}>Strategy</a> and <a href={withBase('/creational/factory-method/')}>Factory Method</a> lean heavily on polymorphism; <a href={withBase('/fundamentals/immutability/')}>Immutability</a> and <a href={withBase('/fundamentals/cohesion-and-coupling/')}>Cohesion and Coupling</a> build on encapsulation.
+- <a href={withBase('/fundamentals/interfaces-vs-abstract-classes/')}>Interfaces vs. Abstract Classes</a> — the concrete mechanisms languages provide for abstraction.

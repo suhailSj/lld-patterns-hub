@@ -1,0 +1,181 @@
+---
+title: "Proxy"
+order: 5
+summary: "Provide a stand-in for another object to control access to it — for lazy loading, caching, or permission checks."
+tags: ["Structural", "GoF", "access control"]
+useWhen: "You need to control, guard, or defer access to an expensive or sensitive object without changing its interface."
+---
+import CodeTabs from '../../components/CodeTabs.astro';
+import Callout from '../../components/Callout.astro';
+import { withBase } from '../../utils/url';
+
+## Explanation in simple terms
+
+A document editor needs to check permissions before letting a user open or edit a shared document — but the actual
+document-loading/editing logic shouldn't have to know anything about permissions. A **protection proxy** sits in
+front of the real document service: it implements the exact same interface, checks the caller's permission first,
+and only then delegates to the real object.
+
+## Practical example
+
+<Callout type="tip" title="Proxy vs. Decorator, concretely">
+This protection proxy could easily be mistaken for a Decorator (it wraps another object implementing the same
+interface). The difference is intent: this proxy's job is to <em>guard access</em> — callers without permission never
+reach the real object at all — whereas a Decorator's job is to <em>add</em> behavior on top of a call that always
+goes through. See the <a href={withBase('/cheatsheet/')}>Cheat Sheet</a> for the full comparison.
+</Callout>
+
+## Class / object design
+
+```
+      «interface»
+    DocumentService
+   + open(user, doc_id): str
+          ▲
+   ┌──────┴───────┐
+RealDocumentService   DocumentAccessProxy
+(actual file I/O)      ─ checks permissions, then delegates to ─▶ RealDocumentService
+```
+
+## Python code
+
+<CodeTabs>
+
+```python
+from abc import ABC, abstractmethod
+
+
+class DocumentService(ABC):
+    @abstractmethod
+    def open(self, user: str, doc_id: str) -> str: ...
+
+
+class RealDocumentService(DocumentService):
+    """Does the actual (expensive) work: real file/database I/O."""
+
+    def open(self, user: str, doc_id: str) -> str:
+        print(f"Loading document {doc_id} from disk...")
+        return f"<contents of {doc_id}>"
+
+
+class DocumentAccessProxy(DocumentService):
+    """Same interface as RealDocumentService. Guards access before delegating."""
+
+    def __init__(self, real_service: RealDocumentService, permissions: dict[str, set[str]]):
+        self._real_service = real_service
+        self._permissions = permissions  # doc_id -> set of allowed users
+
+    def open(self, user: str, doc_id: str) -> str:
+        allowed_users = self._permissions.get(doc_id, set())
+        if user not in allowed_users:
+            raise PermissionError(f"{user} is not permitted to open {doc_id}")
+        return self._real_service.open(user, doc_id)
+
+
+# --- usage: callers use DocumentService exactly as before, unaware a proxy is involved ---
+proxy = DocumentAccessProxy(
+    RealDocumentService(),
+    permissions={"quarterly-report": {"ada", "grace"}},
+)
+print(proxy.open("ada", "quarterly-report"))     # succeeds
+proxy.open("mallory", "quarterly-report")         # raises PermissionError
+```
+
+```java
+import java.util.Map;
+import java.util.Set;
+
+interface DocumentService {
+    String open(String user, String docId);
+}
+
+// Does the actual (expensive) work: real file/database I/O.
+class RealDocumentService implements DocumentService {
+    public String open(String user, String docId) {
+        System.out.println("Loading document " + docId + " from disk...");
+        return "<contents of " + docId + ">";
+    }
+}
+
+// Same interface as RealDocumentService. Guards access before delegating.
+class DocumentAccessProxy implements DocumentService {
+    private final RealDocumentService realService;
+    private final Map<String, Set<String>> permissions; // docId -> allowed users
+
+    DocumentAccessProxy(RealDocumentService realService, Map<String, Set<String>> permissions) {
+        this.realService = realService;
+        this.permissions = permissions;
+    }
+
+    public String open(String user, String docId) {
+        Set<String> allowedUsers = permissions.getOrDefault(docId, Set.of());
+        if (!allowedUsers.contains(user)) {
+            throw new SecurityException(user + " is not permitted to open " + docId);
+        }
+        return realService.open(user, docId);
+    }
+}
+
+// --- usage: callers use DocumentService exactly as before, unaware a proxy is involved ---
+// DocumentAccessProxy proxy = new DocumentAccessProxy(
+//     new RealDocumentService(), Map.of("quarterly-report", Set.of("ada", "grace")));
+// System.out.println(proxy.open("ada", "quarterly-report"));   // succeeds
+// proxy.open("mallory", "quarterly-report");                    // throws SecurityException
+```
+
+</CodeTabs>
+
+**Language notes:** both examples show a **protection proxy**. Other common variants: a **virtual proxy** that delays
+loading an expensive resource until first use (checking `if self._real is None: self._real = RealDocumentService()`
+inside `open()`), and a **remote proxy** that forwards calls over a network — Java RMI stubs and generated gRPC
+client stubs are both real remote proxies. The structure (same interface, delegate after some extra step) is
+identical across all variants in both languages.
+
+## Design reasoning
+
+The proxy is only trustworthy if it's indistinguishable from the real object *to well-behaved callers* — same
+method signatures, same return types, same exceptions for the same failure modes it doesn't intercept. That's what
+lets you swap a proxy in without touching any calling code.
+
+## Pros
+
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Adds access control, caching, or lazy-loading without changing the real object or its callers</li>
+<li>Keeps cross-cutting concerns (permissions, logging, caching) out of the core business object</li>
+<li>Callers depend only on the shared interface, so proxies are easy to introduce or remove later</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Adds an indirection layer that can make call chains harder to trace</li>
+<li>A poorly designed proxy that leaks its own errors differently than the real object breaks the "transparent stand-in" guarantee</li>
+</ul>
+</div>
+</div>
+
+## When to use
+
+- You need to guard, cache, meter, or lazily initialize access to an object without changing its public interface or
+  its callers.
+
+## When to avoid
+
+- If the "extra step" you want to add is really new *behavior* the caller should be aware of (not just access
+  control/optimization), Decorator communicates intent better.
+
+## Interview talking points
+
+- Name the proxy variant explicitly: protection (access control), virtual (lazy loading), remote (network stand-in),
+  or caching proxy — interviewers often want to see you know there's more than one flavor.
+- Be precise about the Proxy vs. Decorator distinction: it's about *intent* (control access vs. add behavior), not
+  structure — the code often looks nearly identical.
+
+## Related patterns
+
+- <a href={withBase('/structural/decorator/')}>Decorator</a> — structurally similar; differs in intent (adds behavior vs. controls access).
+- <a href={withBase('/structural/adapter/')}>Adapter</a> — Adapter changes the interface to match a different one; Proxy keeps the exact same interface.
+- <a href={withBase('/fundamentals/dependency-injection/')}>Dependency Injection</a> — proxies are commonly injected in place of the real object, so callers never need to know which one they received.

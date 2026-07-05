@@ -1,0 +1,13 @@
+---
+import { getCollection } from 'astro:content';
+import PatternPage from '../../components/PatternPage.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('behavioral');
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const all = await getCollection('behavioral');
+---
+<PatternPage categoryKey="behavioral" entry={entry} all={all} />

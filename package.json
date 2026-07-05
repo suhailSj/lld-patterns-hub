@@ -1,0 +1,18 @@
+{
+  "name": "lld-patterns-hub",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "A mobile-friendly, educational website teaching Low-Level Design (LLD) patterns with Python and Java examples.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^7.0.6",
+    "@astrojs/mdx": "^7.0.2",
+    "@astrojs/sitemap": "^3.2.1"
+  }
+}

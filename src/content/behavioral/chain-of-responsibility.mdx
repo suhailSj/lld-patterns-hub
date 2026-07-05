@@ -1,0 +1,216 @@
+---
+title: "Chain of Responsibility"
+order: 5
+summary: "Pass a request along a chain of handlers until one of them handles it, without the sender knowing which one will."
+tags: ["Behavioral", "GoF", "access control"]
+useWhen: "A request must pass through a series of independent checks or handlers, and which one ultimately handles it varies."
+---
+import CodeTabs from '../../components/CodeTabs.astro';
+import Callout from '../../components/Callout.astro';
+import { withBase } from '../../utils/url';
+
+## Problem statement
+
+An expense approval system routes a request based on amount: a manager can approve up to $1,000, a director up to
+$10,000, and a VP anything above that. The submitting employee shouldn't need to know the approval thresholds or
+who's currently in each role — they just submit the request.
+
+## Core idea
+
+Each approver is a handler with a reference to the *next* handler in the chain. Each handler checks whether it can
+approve the request; if not, it passes the request to the next handler. The request travels down the chain until
+someone approves it (or the chain ends with nobody able to).
+
+## Real-world analogy
+
+Tech support escalation: a level-1 agent handles common issues; anything they can't resolve gets escalated to level
+2, then to an engineer. The customer files one ticket and doesn't need to know the org chart — the ticket moves along
+the chain until someone with the right authority/knowledge handles it.
+
+## Class / object design
+
+```
+      «abstract»
+       Approver
+    - next_approver: Approver
+    + set_next(approver)
+    + handle(request)  ──▶ if can't approve, delegates to next_approver.handle(request)
+             ▲
+   ┌─────────┼──────────┐
+Manager   Director   VP
+(each defines its own approval_limit)
+```
+
+## Python example
+
+<CodeTabs>
+
+```python
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+
+@dataclass
+class ExpenseRequest:
+    employee: str
+    amount: float
+    reason: str
+
+
+class Approver(ABC):
+    """Each handler holds a reference to the next one and decides locally whether it can approve."""
+
+    def __init__(self):
+        self._next_approver: "Approver | None" = None
+
+    def set_next(self, approver: "Approver") -> "Approver":
+        self._next_approver = approver
+        return approver  # allows chaining: manager.set_next(director).set_next(vp)
+
+    def handle(self, request: ExpenseRequest) -> None:
+        if self._can_approve(request):
+            print(f"{self.__class__.__name__} approved ${request.amount:.2f} for {request.employee}")
+        elif self._next_approver is not None:
+            self._next_approver.handle(request)
+        else:
+            print(f"No one could approve ${request.amount:.2f} for {request.employee}")
+
+    @abstractmethod
+    def _can_approve(self, request: ExpenseRequest) -> bool: ...
+
+
+class Manager(Approver):
+    def _can_approve(self, request: ExpenseRequest) -> bool:
+        return request.amount <= 1000
+
+
+class Director(Approver):
+    def _can_approve(self, request: ExpenseRequest) -> bool:
+        return request.amount <= 10000
+
+
+class VicePresident(Approver):
+    def _can_approve(self, request: ExpenseRequest) -> bool:
+        return True  # top of the chain: approves anything that reaches this far
+
+
+# --- usage: build the chain once, submitters never see it ---
+manager, director, vp = Manager(), Director(), VicePresident()
+manager.set_next(director).set_next(vp)
+
+manager.handle(ExpenseRequest("ada", 450, "team lunch"))       # Manager approves
+manager.handle(ExpenseRequest("grace", 7500, "conference"))    # escalates to Director
+manager.handle(ExpenseRequest("linus", 50000, "new server"))   # escalates to VP
+```
+
+```java
+abstract class Approver {
+    // Each handler holds a reference to the next one and decides locally whether it can approve.
+    protected Approver nextApprover;
+
+    Approver setNext(Approver approver) {
+        this.nextApprover = approver;
+        return approver; // allows chaining: manager.setNext(director).setNext(vp)
+    }
+
+    void handle(ExpenseRequest request) {
+        if (canApprove(request)) {
+            System.out.printf("%s approved $%.2f for %s%n", getClass().getSimpleName(), request.amount, request.employee);
+        } else if (nextApprover != null) {
+            nextApprover.handle(request);
+        } else {
+            System.out.printf("No one could approve $%.2f for %s%n", request.amount, request.employee);
+        }
+    }
+
+    protected abstract boolean canApprove(ExpenseRequest request);
+}
+
+class Manager extends Approver {
+    protected boolean canApprove(ExpenseRequest request) { return request.amount <= 1000; }
+}
+
+class Director extends Approver {
+    protected boolean canApprove(ExpenseRequest request) { return request.amount <= 10000; }
+}
+
+class VicePresident extends Approver {
+    // top of the chain: approves anything that reaches this far
+    protected boolean canApprove(ExpenseRequest request) { return true; }
+}
+
+class ExpenseRequest {
+    final String employee;
+    final double amount;
+    final String reason;
+    ExpenseRequest(String employee, double amount, String reason) {
+        this.employee = employee; this.amount = amount; this.reason = reason;
+    }
+}
+
+// --- usage: build the chain once, submitters never see it ---
+// Manager manager = new Manager();
+// Director director = new Director();
+// VicePresident vp = new VicePresident();
+// manager.setNext(director).setNext(vp);
+//
+// manager.handle(new ExpenseRequest("ada", 450, "team lunch"));       // Manager approves
+// manager.handle(new ExpenseRequest("grace", 7500, "conference"));    // escalates to Director
+// manager.handle(new ExpenseRequest("linus", 50000, "new server"));   // escalates to VP
+```
+
+</CodeTabs>
+
+**Language notes:** the chain-building style (`set_next` returning the next approver so calls chain fluently) works
+identically in both languages. This is also exactly how HTTP middleware chains are built in many web frameworks
+(`app.use(authMiddleware).use(rateLimiter).use(logger)`), which is the pattern's most common modern incarnation.
+
+## How to identify when to use it
+
+A request passes through a sequence of independent checks or handlers where: (1) the sender shouldn't need to know
+which handler ultimately deals with it, and (2) the set/order of handlers might change independently of the sender's
+code. Middleware pipelines (auth → rate-limiting → logging → routing) and escalation/approval workflows are the two
+most common real-world shapes.
+
+## Pros
+
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Sender is fully decoupled from which handler processes the request</li>
+<li>Handlers can be added, removed, or reordered without changing the sender or other handlers</li>
+<li>Each handler has a single, focused responsibility</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>No guarantee a request is handled at all unless the chain explicitly ends with a catch-all (as `VicePresident` does above)</li>
+<li>Debugging can require stepping through several handlers to find where a request actually got processed</li>
+</ul>
+</div>
+</div>
+
+## When to use
+
+- Multiple potential handlers for a request, where the "right" one depends on runtime conditions and the sender
+  shouldn't hard-code that decision.
+
+## When to avoid
+
+- If there's always exactly one handler for a given request type, a direct call (or Strategy, if the handler varies
+  by type but not by escalation) is simpler than building a chain.
+
+## Interview talking points
+
+- Contrast explicitly with Observer: Chain of Responsibility stops at the first handler that handles the request;
+  Observer notifies *every* registered listener.
+- Mention the middleware-pipeline framing — most engineers have used this pattern already, even if they've never
+  called it "Chain of Responsibility."
+
+## Related patterns
+
+- <a href={withBase('/behavioral/observer/')}>Observer</a> — contrast: chain stops at first handler; observer notifies everyone.
+- <a href={withBase('/behavioral/command/')}>Command</a> — the request passed along the chain is often itself a Command object.
+- <a href={withBase('/structural/decorator/')}>Decorator</a> — structurally similar (each link wraps/forwards to the next), but Decorator's links all run, while Chain of Responsibility's links stop as soon as one handles the request.

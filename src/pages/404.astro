@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../utils/url';
+---
+<BaseLayout title="Page not found">
+  <div class="hero">
+    <h1>404 — This pattern hasn't been catalogued.</h1>
+    <p class="lede">The page you're looking for doesn't exist. It may have moved, or the link is out of date.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href={withBase('/')}>Back to Home</a>
+      <a class="btn btn-secondary" href={withBase('/cheatsheet/')}>Go to Cheat Sheet</a>
+    </div>
+  </div>
+</BaseLayout>

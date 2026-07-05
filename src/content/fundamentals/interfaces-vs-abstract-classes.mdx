@@ -1,0 +1,195 @@
+---
+title: "Interfaces vs. Abstract Classes"
+order: 4
+summary: "Two mechanisms for defining a shared contract — pure interfaces vs. abstract classes that also share implementation — and when to reach for each."
+tags: ["Fundamentals", "OOP", "payment processing"]
+useWhen: "Designing a shared contract for several implementations and deciding whether they need shared code, not just a shared signature."
+---
+import CodeTabs from '../../components/CodeTabs.astro';
+import Callout from '../../components/Callout.astro';
+import { withBase } from '../../utils/url';
+
+## Intent / definition
+
+Both interfaces and abstract classes let you define a contract that multiple concrete classes implement — but they
+differ in what else they can carry. A pure **interface** defines only method signatures (a promise: "anything
+implementing me has these methods"). An **abstract class** can define the same contract *and* provide real,
+shared implementation that subclasses inherit, alongside abstract methods subclasses must still fill in.
+
+## Problem statement
+
+Several payment processors (Stripe, PayPal, a legacy gateway) all need to expose `charge(amount)`. Additionally,
+every processor should log a standardized message before and after charging — logic that's identical across all of
+them and shouldn't be copy-pasted into each class.
+
+## Solution overview
+
+Use an abstract class when there's real, shared implementation to inherit (the logging wrapper here); use a pure
+interface when you're only defining a contract with no shared code. A class can also combine both: implement a small
+interface (for maximum flexibility in what else it can extend) while a separate abstract base class supplies default
+behavior.
+
+## Class / object design
+
+```
+      «interface»                       AbstractPaymentProcessor (abstract class)
+    PaymentProcessor                     - implements PaymentProcessor
+   + charge(amount): bool                - charge(amount): wraps logging around chargeInternal(amount)
+          ▲                              - chargeInternal(amount): abstract — subclasses must implement
+          │ implements                             ▲
+   AbstractPaymentProcessor (implements, provides shared logging)
+                                    ┌─────┴──────┐
+                              StripeProcessor  PayPalProcessor
+                              (only implement chargeInternal — logging is free)
+```
+
+## Python example
+
+Python's `abc` module supports both styles: an `ABC` with only `@abstractmethod`s behaves like a pure interface; an
+`ABC` with a mix of concrete and abstract methods behaves like an abstract class.
+
+<CodeTabs>
+
+```python
+from abc import ABC, abstractmethod
+
+
+class PaymentProcessor(ABC):
+    """Pure interface: only a contract, no shared implementation."""
+
+    @abstractmethod
+    def charge(self, amount_cents: int) -> bool: ...
+
+
+class AbstractPaymentProcessor(PaymentProcessor):
+    """Abstract class: implements the interface AND shares real logic (logging)."""
+
+    def charge(self, amount_cents: int) -> bool:
+        print(f"[log] charging {amount_cents} cents...")
+        result = self._charge_internal(amount_cents)
+        print(f"[log] charge {'succeeded' if result else 'failed'}")
+        return result
+
+    @abstractmethod
+    def _charge_internal(self, amount_cents: int) -> bool:
+        """Subclasses only need to implement the actual charging logic."""
+
+
+class StripeProcessor(AbstractPaymentProcessor):
+    def _charge_internal(self, amount_cents: int) -> bool:
+        print(f"Stripe: charging {amount_cents} cents")
+        return True
+
+
+class PayPalProcessor(AbstractPaymentProcessor):
+    def _charge_internal(self, amount_cents: int) -> bool:
+        print(f"PayPal: charging {amount_cents} cents")
+        return True
+
+
+# --- usage: both processors get logging "for free" from the shared abstract class ---
+StripeProcessor().charge(4999)
+PayPalProcessor().charge(4999)
+```
+
+```java
+interface PaymentProcessor {
+    // Pure interface: only a contract, no shared implementation.
+    boolean charge(int amountCents);
+}
+
+abstract class AbstractPaymentProcessor implements PaymentProcessor {
+    // Abstract class: implements the interface AND shares real logic (logging).
+    public final boolean charge(int amountCents) {
+        System.out.println("[log] charging " + amountCents + " cents...");
+        boolean result = chargeInternal(amountCents);
+        System.out.println("[log] charge " + (result ? "succeeded" : "failed"));
+        return result;
+    }
+
+    // Subclasses only need to implement the actual charging logic.
+    protected abstract boolean chargeInternal(int amountCents);
+}
+
+class StripeProcessor extends AbstractPaymentProcessor {
+    protected boolean chargeInternal(int amountCents) {
+        System.out.println("Stripe: charging " + amountCents + " cents");
+        return true;
+    }
+}
+
+class PayPalProcessor extends AbstractPaymentProcessor {
+    protected boolean chargeInternal(int amountCents) {
+        System.out.println("PayPal: charging " + amountCents + " cents");
+        return true;
+    }
+}
+
+// --- usage: both processors get logging "for free" from the shared abstract class ---
+// new StripeProcessor().charge(4999);
+// new PayPalProcessor().charge(4999);
+```
+
+</CodeTabs>
+
+**Language notes:** Java has always drawn a hard structural line between `interface` (originally no implementation
+at all; modern Java allows `default` methods with limited shared code) and `abstract class` (full shared
+implementation, but only single inheritance — a class can extend just one abstract class but implement many
+interfaces). Python doesn't have a separate `interface` keyword at all: everything is a class, and whether something
+"is an interface" is a matter of convention — an `ABC` with only abstract methods and no concrete state. Python also
+supports `Protocol` (structural typing, "duck typing with type hints") as a third option: a class satisfies a
+`Protocol` just by having the right methods, with no explicit `implements`/inheritance declaration needed at all.
+
+## Real-world example
+
+Java's `Comparable<T>` is a pure interface (just `compareTo`); `AbstractList` in `java.util` is an abstract class
+that implements most of `List`'s behavior in terms of a few abstract methods subclasses must provide (`get(index)`,
+`size()`), exactly like `AbstractPaymentProcessor` above.
+
+## Pros and cons
+
+<div class="pros-cons">
+<div>
+<h4>✅ Interfaces</h4>
+<ul>
+<li>A class can implement many interfaces (no single-inheritance limit)</li>
+<li>Maximally flexible — pure contract, zero coupling to shared implementation</li>
+<li>Ideal for <a href={withBase('/solid/isp/')}>ISP</a>-style small, focused roles</li>
+</ul>
+</div>
+<div>
+<h4>✅ Abstract classes</h4>
+<ul>
+<li>Share real implementation across subclasses — no copy-pasted logic</li>
+<li>Can hold shared state (fields), which interfaces (mostly) cannot</li>
+<li>Good fit when subclasses are genuinely variations on one shared algorithm (see <a href={withBase('/behavioral/template-method/')}>Template Method</a>)</li>
+</ul>
+</div>
+</div>
+
+## When to use which
+
+- Use a pure interface when you only need to guarantee a shared method signature, and implementers might not share
+  any other code or state.
+- Use an abstract class when several implementers share real, identical logic that would otherwise be duplicated —
+  and you're comfortable with the single-inheritance constraint that comes with it.
+- Many real designs use both: a small interface for maximum flexibility, plus an optional abstract base class that
+  implements it and provides convenient shared defaults (exactly as shown above).
+
+## When to avoid
+
+- Don't reach for an abstract class purely to share a couple of trivial one-line helper methods — a standalone
+  utility function/class avoids the inheritance coupling entirely.
+
+## Interview talking points
+
+- State the core distinguishing question plainly: "do implementers need to share actual code, or just a signature?"
+- Mention Java's single-inheritance constraint on abstract classes as the main practical tradeoff driving the choice.
+- If discussing Python, bring up `Protocol` as evidence you understand structural vs. nominal typing, not just the
+  `ABC` mechanism.
+
+## Related patterns
+
+- <a href={withBase('/solid/isp/')}>Interface Segregation Principle</a> — favors small, focused interfaces over large ones.
+- <a href={withBase('/behavioral/template-method/')}>Template Method</a> — the pattern most directly built on abstract classes sharing real implementation.
+- <a href={withBase('/solid/lsp/')}>Liskov Substitution Principle</a> — applies to both interfaces and abstract classes: any implementer/subclass must honor the contract's promises.

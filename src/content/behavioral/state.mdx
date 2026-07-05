@@ -1,0 +1,268 @@
+---
+title: "State"
+order: 4
+summary: "Let an object change its behavior entirely when its internal state changes, as if it had switched to a different class."
+tags: ["Behavioral", "GoF", "order processing"]
+useWhen: "An object's allowed operations and behavior depend heavily on 'what phase' it's currently in, and a status flag with if/switch is spreading everywhere."
+---
+import CodeTabs from '../../components/CodeTabs.astro';
+import Callout from '../../components/Callout.astro';
+import { withBase } from '../../utils/url';
+
+## Problem statement
+
+An order moves through a lifecycle: `PLACED → PAID → SHIPPED → DELIVERED`, plus a `CANCELLED` state reachable from
+the first two. Which actions are legal (`pay()`, `ship()`, `cancel()`, `deliver()`) depends entirely on the current
+status, and a naive implementation ends up with a `status` string field and `if status == "PAID": ... elif status ==
+"SHIPPED": ...` scattered across every method.
+
+## Core idea
+
+Give each status its own class implementing a shared `OrderState` interface. Each state class knows exactly which
+transitions are legal from itself and returns the next state — the `Order` object just delegates to
+`self._state.pay()` and replaces its current state with whatever that call returns. Illegal transitions (e.g.
+shipping an unpaid order) are caught right where they're defined, not scattered through conditionals.
+
+## Real-world analogy
+
+A vending machine behaves completely differently depending on its current state: "no coin inserted" (only accepts
+coins), "coin inserted" (accepts a selection or coin return), "dispensing" (ignores new input until done). It's the
+same machine, but which buttons "work" depends entirely on its current state — that's exactly what the State pattern
+models.
+
+## Class / object design
+
+```
+       «interface»
+       OrderState
+    + pay(order) -> OrderState
+    + ship(order) -> OrderState
+    + cancel(order) -> OrderState
+              ▲
+   ┌──────────┼───────────┬─────────────┐
+PlacedState  PaidState  ShippedState  DeliveredState
+ (each returns the next legal state, or raises for illegal transitions)
+
+Order
+  - state: OrderState    ◀── delegates every action to the current state object
+  + pay() / ship() / cancel()
+```
+
+## Python example
+
+<CodeTabs>
+
+```python
+from abc import ABC, abstractmethod
+
+
+class OrderState(ABC):
+    @abstractmethod
+    def pay(self, order: "Order") -> "OrderState": ...
+
+    @abstractmethod
+    def ship(self, order: "Order") -> "OrderState": ...
+
+    @abstractmethod
+    def cancel(self, order: "Order") -> "OrderState": ...
+
+
+class PlacedState(OrderState):
+    def pay(self, order):
+        print("Payment received")
+        return PaidState()
+
+    def ship(self, order):
+        raise RuntimeError("Cannot ship an unpaid order")
+
+    def cancel(self, order):
+        print("Order cancelled before payment")
+        return CancelledState()
+
+
+class PaidState(OrderState):
+    def pay(self, order):
+        raise RuntimeError("Order is already paid")
+
+    def ship(self, order):
+        print("Order shipped")
+        return ShippedState()
+
+    def cancel(self, order):
+        print("Order cancelled after payment — refund issued")
+        return CancelledState()
+
+
+class ShippedState(OrderState):
+    def pay(self, order):
+        raise RuntimeError("Order is already paid and shipped")
+
+    def ship(self, order):
+        raise RuntimeError("Order is already shipped")
+
+    def cancel(self, order):
+        raise RuntimeError("Cannot cancel a shipped order")
+
+
+class CancelledState(OrderState):
+    def pay(self, order): raise RuntimeError("Order is cancelled")
+    def ship(self, order): raise RuntimeError("Order is cancelled")
+    def cancel(self, order): raise RuntimeError("Order is already cancelled")
+
+
+class Order:
+    """Delegates every action to its current state object — never branches on status itself."""
+
+    def __init__(self, order_id: str):
+        self.order_id = order_id
+        self._state: OrderState = PlacedState()
+
+    def pay(self) -> None:
+        self._state = self._state.pay(self)
+
+    def ship(self) -> None:
+        self._state = self._state.ship(self)
+
+    def cancel(self) -> None:
+        self._state = self._state.cancel(self)
+
+
+# --- usage ---
+order = Order("ORD-1")
+order.pay()    # PlacedState -> PaidState
+order.ship()   # PaidState -> ShippedState
+order.ship()   # raises: "Order is already shipped"
+```
+
+```java
+interface OrderState {
+    OrderState pay(Order order);
+    OrderState ship(Order order);
+    OrderState cancel(Order order);
+}
+
+class PlacedState implements OrderState {
+    public OrderState pay(Order order) {
+        System.out.println("Payment received");
+        return new PaidState();
+    }
+    public OrderState ship(Order order) {
+        throw new IllegalStateException("Cannot ship an unpaid order");
+    }
+    public OrderState cancel(Order order) {
+        System.out.println("Order cancelled before payment");
+        return new CancelledState();
+    }
+}
+
+class PaidState implements OrderState {
+    public OrderState pay(Order order) {
+        throw new IllegalStateException("Order is already paid");
+    }
+    public OrderState ship(Order order) {
+        System.out.println("Order shipped");
+        return new ShippedState();
+    }
+    public OrderState cancel(Order order) {
+        System.out.println("Order cancelled after payment — refund issued");
+        return new CancelledState();
+    }
+}
+
+class ShippedState implements OrderState {
+    public OrderState pay(Order order) {
+        throw new IllegalStateException("Order is already paid and shipped");
+    }
+    public OrderState ship(Order order) {
+        throw new IllegalStateException("Order is already shipped");
+    }
+    public OrderState cancel(Order order) {
+        throw new IllegalStateException("Cannot cancel a shipped order");
+    }
+}
+
+class CancelledState implements OrderState {
+    public OrderState pay(Order order) { throw new IllegalStateException("Order is cancelled"); }
+    public OrderState ship(Order order) { throw new IllegalStateException("Order is cancelled"); }
+    public OrderState cancel(Order order) { throw new IllegalStateException("Order is already cancelled"); }
+}
+
+// Delegates every action to its current state object — never branches on status itself.
+class Order {
+    final String orderId;
+    private OrderState state = new PlacedState();
+
+    Order(String orderId) { this.orderId = orderId; }
+
+    void pay() { state = state.pay(this); }
+    void ship() { state = state.ship(this); }
+    void cancel() { state = state.cancel(this); }
+}
+
+// --- usage ---
+// Order order = new Order("ORD-1");
+// order.pay();    // PlacedState -> PaidState
+// order.ship();   // PaidState -> ShippedState
+// order.ship();   // throws: "Order is already shipped"
+```
+
+</CodeTabs>
+
+**Language notes:** both languages express state transitions the same way: each state method returns the *next*
+state object. Java's compiler ensures every `OrderState` implementer provides all three transition methods; Python's
+`ABC` gives the equivalent guarantee at class-definition time (missing an abstract method raises at instantiation).
+
+## How to identify when to use it
+
+Look for a `status`/`state` field checked repeatedly across many methods (`if status == "X"` appearing in `pay()`,
+`ship()`, `cancel()`, and more). If the set of legal operations genuinely changes based on that field, and the field
+transitions through a known set of values, State is very likely the right fit.
+
+## Pros
+
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Eliminates scattered status-checking conditionals — each state owns its own legal transitions</li>
+<li>Illegal transitions are caught exactly where they're defined, with a clear error message</li>
+<li>New states are added as new classes without touching existing state logic</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>More classes than a single status field with conditionals, especially for simple lifecycles</li>
+<li>State objects need to be recreated or shared carefully if they hold any per-order data</li>
+</ul>
+</div>
+</div>
+
+## When to use
+
+- An object has a small number of well-defined states, and behavior/allowed operations genuinely differ by state.
+
+## When to avoid
+
+- A simple boolean flag (`is_active`) or a couple of straightforward conditionals is clearer than a full state
+  machine for objects with only two trivial states.
+
+<Callout type="tip" title="Interview framing">
+State and Strategy look nearly identical in code. The tell interviewers listen for: in State, the state objects
+<em>transition to each other</em> (as seen above, each method returns the next state); in Strategy, the
+implementations are chosen once by the client and don't know about each other. See the
+<a href={withBase('/cheatsheet/')}>Cheat Sheet</a> for the full side-by-side.
+</Callout>
+
+## Interview talking points
+
+- Draw the state diagram first (states as nodes, legal transitions as edges) — it maps directly onto the class
+  design and shows you're thinking about the full lifecycle, not just the happy path.
+- Mention that illegal-transition handling (throwing vs. silently ignoring vs. returning a result type) is a design
+  decision worth calling out explicitly.
+
+## Related patterns
+
+- <a href={withBase('/behavioral/strategy/')}>Strategy</a> — same structure, different intent; see the Cheat Sheet comparison.
+- <a href={withBase('/solid/ocp/')}>Open/Closed Principle</a> — adding a new state is purely additive, satisfying OCP.
+- <a href={withBase('/fundamentals/cohesion-and-coupling/')}>Cohesion and Coupling</a> — State increases cohesion by keeping each phase's rules together instead of smeared across the whole class.
