@@ -45,8 +45,12 @@ function initSidebar() {
 // Preferred language persists across every code-tabs block on the page,
 // and across page loads, so readers stay in "Python mode" or "Java mode".
 function applyLangToGroup(group, lang) {
-  const buttons = group.querySelectorAll(':scope > .code-tabs-header > .tab-btn');
-  const panels = group.querySelectorAll(':scope > .code-tabs-body > [data-language]');
+  // Plain descendant selectors (not :scope > direct-child) because
+  // initCopyButtons() wraps each <pre> in an extra .code-copy-wrap div,
+  // which would otherwise break a direct-child selector on every click
+  // after the first render.
+  const buttons = group.querySelectorAll('.code-tabs-header .tab-btn');
+  const panels = group.querySelectorAll('.code-tabs-body [data-language]');
   let matched = false;
   buttons.forEach((b) => {
     const isMatch = b.dataset.lang === lang;
