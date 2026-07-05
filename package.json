@@ -3,6 +3,9 @@
   "type": "module",
   "version": "1.0.0",
   "description": "A mobile-friendly, educational website teaching Low-Level Design (LLD) patterns with Python and Java examples.",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
