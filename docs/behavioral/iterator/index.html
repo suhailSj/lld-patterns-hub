@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Iterator · LLD Patterns Hub</title>
+<meta name="description" content="Provide a way to access the elements of a collection sequentially without exposing how the collection is stored internally." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Iterator · LLD Patterns Hub" />
+<meta property="og:description" content="Provide a way to access the elements of a collection sequentially without exposing how the collection is stored internally." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/" aria-current="page">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Behavioral Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Behavioral Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a></li>
+<li><a href="/lld-patterns-hub/behavioral/observer/">Observer</a></li>
+<li><a href="/lld-patterns-hub/behavioral/command/">Command</a></li>
+<li><a href="/lld-patterns-hub/behavioral/state/">State</a></li>
+<li><a href="/lld-patterns-hub/behavioral/chain-of-responsibility/">Chain of Responsibility</a></li>
+<li><a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a></li>
+<li><a href="/lld-patterns-hub/behavioral/iterator/" aria-current="page">Iterator</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/behavioral/">Behavioral Patterns</a> / Iterator</p>
+
+    <article class="prose">
+      <h1>Iterator</h1>
+      <div class="pattern-meta"><span class="tag">Behavioral</span><span class="tag">GoF</span><span class="tag">pagination</span></div>
+      <p class="summary-lede">Provide a way to access the elements of a collection sequentially without exposing how the collection is stored internally.</p>
+<h2>Problem statement</h2>
+<p>A social media feed’s posts are actually fetched from a backend API <strong>one page at a time</strong> — the client shouldn’t
+need to manage page numbers, “have I fetched this page yet,” or when to stop, just to loop over posts. It also
+shouldn’t need to know that pagination is happening at all versus, say, an in-memory list.</p>
+<h2>Core idea</h2>
+<p>Wrap the paging logic behind a standard iteration interface: something with <code>has_next()</code>/<code>next()</code> (or, in Python,
+something that implements <code>__iter__</code>/<code>__next__</code>). Client code loops over it exactly like it would loop over a plain
+list — the fact that pages are being fetched lazily, on demand, from a network call is entirely hidden inside the
+iterator.</p>
+<h2>Real-world analogy</h2>
+<p>A streaming playlist doesn’t load every song into memory before you press play — it hands you the next track when
+you ask for it, and however it fetches or buffers that track is invisible to whoever’s just pressing “next.”</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>      «interface»
+     FeedIterator
+   + has_next(): bool
+   + next(): Post
+           ▲
+    PaginatedFeedIterator
+    (fetches a new page from the API only when the current page is exhausted)
+
+FeedClient code:
+  it = feed.iterator()
+  while it.has_next():
+      post = it.next()   ◀── caller never sees page numbers or API calls
+</code></pre>
+<h2>Python example</h2>
+<p>Python has first-class iterator support via <code>__iter__</code>/<code>__next__</code>, which is the idiomatic way to implement this
+pattern — any object implementing them works with <code>for ... in ...</code> directly.</p>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Post</span>:
+    <span class="hljs-built_in">id</span>: <span class="hljs-built_in">str</span>
+    text: <span class="hljs-built_in">str</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FeedAPI</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Simulates a backend that only returns one page at a time.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">fetch_page</span>(<span class="hljs-params">self, page_number: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">list</span>[Post]:
+        all_posts = [Post(<span class="hljs-string">f&quot;p<span class="hljs-subst">{i}</span>&quot;</span>, <span class="hljs-string">f&quot;Post number <span class="hljs-subst">{i}</span>&quot;</span>) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-number">26</span>)]
+        page_size = <span class="hljs-number">10</span>
+        start = page_number * page_size
+        <span class="hljs-keyword">return</span> all_posts[start:start + page_size]
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PaginatedFeedIterator</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Implements Python&#x27;s iterator protocol: hides pagination behind a normal for-loop.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, api: FeedAPI</span>):
+        <span class="hljs-variable language_">self</span>._api = api
+        <span class="hljs-variable language_">self</span>._page_number = <span class="hljs-number">0</span>
+        <span class="hljs-variable language_">self</span>._buffer: <span class="hljs-built_in">list</span>[Post] = []
+        <span class="hljs-variable language_">self</span>._exhausted = <span class="hljs-literal">False</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__iter__</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-string">&quot;PaginatedFeedIterator&quot;</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__next__</span>(<span class="hljs-params">self</span>) -&gt; Post:
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._buffer <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._exhausted:
+            <span class="hljs-variable language_">self</span>._buffer = <span class="hljs-variable language_">self</span>._api.fetch_page(<span class="hljs-variable language_">self</span>._page_number)
+            <span class="hljs-variable language_">self</span>._page_number += <span class="hljs-number">1</span>
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._buffer:
+                <span class="hljs-variable language_">self</span>._exhausted = <span class="hljs-literal">True</span>
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._buffer:
+            <span class="hljs-keyword">raise</span> StopIteration
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._buffer.pop(<span class="hljs-number">0</span>)
+
+<span class="hljs-comment"># --- usage: looks exactly like iterating a plain list ---</span>
+<span class="hljs-keyword">for</span> post <span class="hljs-keyword">in</span> PaginatedFeedIterator(FeedAPI()):
+    <span class="hljs-built_in">print</span>(post.text)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.ArrayList;
+<span class="hljs-keyword">import</span> java.util.Iterator;
+<span class="hljs-keyword">import</span> java.util.List;
+<span class="hljs-keyword">import</span> java.util.NoSuchElementException;
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Post</span> {
+    <span class="hljs-keyword">final</span> String id;
+    <span class="hljs-keyword">final</span> String text;
+    Post(String id, String text) { <span class="hljs-built_in">this</span>.id = id; <span class="hljs-built_in">this</span>.text = text; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FeedApi</span> {
+    <span class="hljs-comment">// Simulates a backend that only returns one page at a time.</span>
+    List&lt;Post&gt; <span class="hljs-title function_">fetchPage</span><span class="hljs-params">(<span class="hljs-type">int</span> pageNumber)</span> {
+        List&lt;Post&gt; all = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; i &lt;= <span class="hljs-number">25</span>; i++) all.add(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Post</span>(<span class="hljs-string">&quot;p&quot;</span> + i, <span class="hljs-string">&quot;Post number &quot;</span> + i));
+        <span class="hljs-type">int</span> <span class="hljs-variable">pageSize</span> <span class="hljs-operator">=</span> <span class="hljs-number">10</span>;
+        <span class="hljs-type">int</span> <span class="hljs-variable">start</span> <span class="hljs-operator">=</span> pageNumber * pageSize;
+        <span class="hljs-keyword">if</span> (start &gt;= all.size()) <span class="hljs-keyword">return</span> List.of();
+        <span class="hljs-keyword">return</span> all.subList(start, Math.min(start + pageSize, all.size()));
+    }
+}
+
+<span class="hljs-comment">// Implements Java&#x27;s Iterator interface: hides pagination behind a normal for-each loop.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PaginatedFeedIterator</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Iterator</span>&lt;Post&gt; {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> FeedApi api;
+    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> <span class="hljs-variable">pageNumber</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">private</span> List&lt;Post&gt; buffer = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+    <span class="hljs-keyword">private</span> <span class="hljs-type">boolean</span> <span class="hljs-variable">exhausted</span> <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>;
+
+    PaginatedFeedIterator(FeedApi api) { <span class="hljs-built_in">this</span>.api = api; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">hasNext</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">if</span> (buffer.isEmpty() &amp;&amp; !exhausted) {
+            buffer = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(api.fetchPage(pageNumber++));
+            <span class="hljs-keyword">if</span> (buffer.isEmpty()) exhausted = <span class="hljs-literal">true</span>;
+        }
+        <span class="hljs-keyword">return</span> !buffer.isEmpty();
+    }
+
+    <span class="hljs-keyword">public</span> Post <span class="hljs-title function_">next</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">if</span> (!hasNext()) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NoSuchElementException</span>();
+        <span class="hljs-keyword">return</span> buffer.remove(<span class="hljs-number">0</span>);
+    }
+}
+
+<span class="hljs-comment">// --- usage: looks exactly like iterating a plain list ---</span>
+<span class="hljs-comment">// Iterator&lt;Post&gt; it = new PaginatedFeedIterator(new FeedApi());</span>
+<span class="hljs-comment">// while (it.hasNext()) {</span>
+<span class="hljs-comment">//     System.out.println(it.next().text);</span>
+<span class="hljs-comment">// }</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Python’s <code>for x in obj</code> works automatically for any object implementing <code>__iter__</code>/<code>__next__</code>
+(the iterator protocol) — no interface declaration required, just the two dunder methods. Java’s <code>Iterator&lt;T&gt;</code>
+interface (<code>hasNext()</code>/<code>next()</code>) is explicit and lets the class also implement <code>Iterable&lt;T&gt;</code> to support Java’s
+enhanced <code>for</code> loop directly. Both achieve the same goal: the calling code loops exactly as it would over an
+in-memory collection.</p>
+<h2>How to identify when to use it</h2>
+<p>Client code needs to “go through everything in this collection one at a time,” and the collection’s actual storage
+(paginated API, tree structure, generated/infinite sequence, database cursor) is more complex than a flat in-memory
+array. If exposing that complexity directly would leak implementation details into every caller, Iterator hides it
+behind a uniform interface.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Client code iterates without knowing about pages, cursors, or tree traversal order</li>
+<li>Supports lazy evaluation — later pages/elements are only fetched/computed when actually needed</li>
+<li>Multiple iterators over the same collection can exist independently and progress separately</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Adds a class/protocol implementation for what a plain list traversal wouldn't need</li>
+<li>Lazy fetching means errors (a failed page fetch) surface mid-iteration rather than upfront — callers should be ready to handle that</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>The underlying collection is complex, lazily computed, paginated, or otherwise not a simple in-memory array, but
+callers should still be able to loop over it simply.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>For a small, already-in-memory list, the language’s built-in iteration is already Iterator — don’t build a custom
+one without a real reason (lazy loading, hiding structure, custom traversal order).</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>Point out that both Python’s <code>for</code> loop and Java’s enhanced <code>for</code> loop are themselves built on this exact pattern —
+it’s not an exotic pattern, it’s the one developers use daily, often without naming it.</li>
+<li>Mention lazy evaluation as the main practical win: an iterator over a huge or paginated dataset never needs to hold
+everything in memory at once.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/structural/composite/">Composite</a> — Iterator is commonly used to traverse a Composite tree without exposing its recursive structure to callers.</li>
+<li><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a> — a collection class often exposes a factory method (<code>iterator()</code>, <code>__iter__</code>) that returns the appropriate iterator for its internal structure.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/behavioral/template-method/"><div class="dir">← Previous</div><div>Template Method</div></a>
+<span></span>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

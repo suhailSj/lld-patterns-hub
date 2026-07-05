@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Composite · LLD Patterns Hub</title>
+<meta name="description" content="Compose objects into tree structures and let clients treat individual objects and groups of objects uniformly." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Composite · LLD Patterns Hub" />
+<meta property="og:description" content="Compose objects into tree structures and let clients treat individual objects and groups of objects uniformly." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/" aria-current="page">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Structural Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Structural Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/structural/adapter/">Adapter</a></li>
+<li><a href="/lld-patterns-hub/structural/decorator/">Decorator</a></li>
+<li><a href="/lld-patterns-hub/structural/facade/">Facade</a></li>
+<li><a href="/lld-patterns-hub/structural/composite/" aria-current="page">Composite</a></li>
+<li><a href="/lld-patterns-hub/structural/proxy/">Proxy</a></li>
+<li><a href="/lld-patterns-hub/structural/bridge/">Bridge</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/structural/">Structural Patterns</a> / Composite</p>
+
+    <article class="prose">
+      <h1>Composite</h1>
+      <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">file systems</span></div>
+      <p class="summary-lede">Compose objects into tree structures and let clients treat individual objects and groups of objects uniformly.</p>
+<h2>Explanation in simple terms</h2>
+<p>A file system has files and folders. A folder can contain files and other folders. You want <code>get_size()</code> to work the
+same way whether you call it on a single file or on a folder containing thousands of nested files and folders —
+without the caller needing to check “is this a file or a folder?” first.</p>
+<h2>Practical example</h2>
+<div class="callout tip">
+<div class="callout-title">💡 The key insight</div>
+<p>Both <code>File</code> and <code>Folder</code> implement the same <code>FileSystemNode</code> interface. A <code>Folder</code>’s <code>get_size()</code> just sums its
+children’s <code>get_size()</code> — and doesn’t care whether each child is itself a <code>File</code> or another <code>Folder</code>. The recursion
+falls out naturally from treating both cases uniformly.</p>
+</div>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>        «interface»
+       FileSystemNode
+      + get_size(): int
+      + print_tree(indent)
+             ▲
+   ┌─────────┴─────────┐
+  File               Folder
+ (leaf)          (composite: holds a list of FileSystemNode — Files AND Folders)
+</code></pre>
+<h2>Python code</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FileSystemNode</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_size</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>: ...
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">print_tree</span>(<span class="hljs-params">self, indent: <span class="hljs-built_in">str</span> = <span class="hljs-string">&quot;&quot;</span></span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">File</span>(<span class="hljs-title class_ inherited__">FileSystemNode</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Leaf: no children.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, name: <span class="hljs-built_in">str</span>, size_bytes: <span class="hljs-built_in">int</span></span>):
+        <span class="hljs-variable language_">self</span>.name = name
+        <span class="hljs-variable language_">self</span>.size_bytes = size_bytes
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_size</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.size_bytes
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">print_tree</span>(<span class="hljs-params">self, indent: <span class="hljs-built_in">str</span> = <span class="hljs-string">&quot;&quot;</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">{indent}</span><span class="hljs-subst">{self.name}</span> (<span class="hljs-subst">{self.size_bytes}</span>B)&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Folder</span>(<span class="hljs-title class_ inherited__">FileSystemNode</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Composite: holds other FileSystemNodes — Files or other Folders, indistinguishably.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, name: <span class="hljs-built_in">str</span></span>):
+        <span class="hljs-variable language_">self</span>.name = name
+        <span class="hljs-variable language_">self</span>.children: <span class="hljs-built_in">list</span>[FileSystemNode] = []
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">add</span>(<span class="hljs-params">self, node: FileSystemNode</span>) -&gt; <span class="hljs-string">&quot;Folder&quot;</span>:
+        <span class="hljs-variable language_">self</span>.children.append(node)
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_size</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">int</span>:
+        <span class="hljs-comment"># Doesn&#x27;t care whether each child is a File or a Folder — same call either way.</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(child.get_size() <span class="hljs-keyword">for</span> child <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.children)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">print_tree</span>(<span class="hljs-params">self, indent: <span class="hljs-built_in">str</span> = <span class="hljs-string">&quot;&quot;</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">{indent}</span><span class="hljs-subst">{self.name}</span>/&quot;</span>)
+        <span class="hljs-keyword">for</span> child <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.children:
+            child.print_tree(indent + <span class="hljs-string">&quot;  &quot;</span>)
+
+<span class="hljs-comment"># --- usage ---</span>
+root = Folder(<span class="hljs-string">&quot;project&quot;</span>)
+root.add(File(<span class="hljs-string">&quot;README.md&quot;</span>, <span class="hljs-number">1200</span>))
+src = Folder(<span class="hljs-string">&quot;src&quot;</span>)
+src.add(File(<span class="hljs-string">&quot;main.py&quot;</span>, <span class="hljs-number">3400</span>)).add(File(<span class="hljs-string">&quot;utils.py&quot;</span>, <span class="hljs-number">900</span>))
+root.add(src)
+
+root.print_tree()
+<span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Total size: <span class="hljs-subst">{root.get_size()}</span> bytes&quot;</span>)  <span class="hljs-comment"># sums recursively through the whole tree</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.ArrayList;
+<span class="hljs-keyword">import</span> java.util.List;
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">FileSystemNode</span> {
+    <span class="hljs-type">long</span> <span class="hljs-title function_">getSize</span><span class="hljs-params">()</span>;
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">printTree</span><span class="hljs-params">(String indent)</span>;
+}
+
+<span class="hljs-comment">// Leaf: no children.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FileNode</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">FileSystemNode</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String name;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> sizeBytes;
+    FileNode(String name, <span class="hljs-type">long</span> sizeBytes) { <span class="hljs-built_in">this</span>.name = name; <span class="hljs-built_in">this</span>.sizeBytes = sizeBytes; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">long</span> <span class="hljs-title function_">getSize</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> sizeBytes; }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">printTree</span><span class="hljs-params">(String indent)</span> {
+        System.out.println(indent + name + <span class="hljs-string">&quot; (&quot;</span> + sizeBytes + <span class="hljs-string">&quot;B)&quot;</span>);
+    }
+}
+
+<span class="hljs-comment">// Composite: holds other FileSystemNodes — Files or other Folders, indistinguishably.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Folder</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">FileSystemNode</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String name;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> List&lt;FileSystemNode&gt; children = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+    Folder(String name) { <span class="hljs-built_in">this</span>.name = name; }
+
+    Folder <span class="hljs-title function_">add</span><span class="hljs-params">(FileSystemNode node)</span> { children.add(node); <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">long</span> <span class="hljs-title function_">getSize</span><span class="hljs-params">()</span> {
+        <span class="hljs-comment">// Doesn&#x27;t care whether each child is a FileNode or a Folder — same call either way.</span>
+        <span class="hljs-keyword">return</span> children.stream().mapToLong(FileSystemNode::getSize).sum();
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">printTree</span><span class="hljs-params">(String indent)</span> {
+        System.out.println(indent + name + <span class="hljs-string">&quot;/&quot;</span>);
+        <span class="hljs-keyword">for</span> (FileSystemNode child : children) {
+            child.printTree(indent + <span class="hljs-string">&quot;  &quot;</span>);
+        }
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// Folder root = new Folder(&quot;project&quot;);</span>
+<span class="hljs-comment">// root.add(new FileNode(&quot;README.md&quot;, 1200));</span>
+<span class="hljs-comment">// Folder src = new Folder(&quot;src&quot;);</span>
+<span class="hljs-comment">// src.add(new FileNode(&quot;main.py&quot;, 3400)).add(new FileNode(&quot;utils.py&quot;, 900));</span>
+<span class="hljs-comment">// root.add(src);</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// root.printTree(&quot;&quot;);</span>
+<span class="hljs-comment">// System.out.println(&quot;Total size: &quot; + root.getSize() + &quot; bytes&quot;);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> both languages express the recursive part-whole relationship identically through a shared
+interface. Python’s dynamic typing means a <code>Folder.children</code> list can technically hold anything, but the
+<code>FileSystemNode</code> ABC keeps the contract explicit exactly as Java’s <code>interface</code> does.</p>
+<h2>Design reasoning</h2>
+<p>The uniform interface (<code>FileSystemNode</code>) is what makes recursion “free” — <code>Folder.get_size()</code> never needs a type
+check because every child, leaf or composite, answers <code>get_size()</code> the same way. This is the same idea behind
+recursive UI component trees (a <code>Panel</code> containing <code>Button</code>s and other <code>Panel</code>s) and organizational charts (a
+<code>Manager</code> “containing” other employees for reporting/rollup purposes).</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Client code treats individual objects and whole subtrees identically — no type-checking branches</li>
+<li>Adding new leaf or composite types doesn't require changing existing tree-walking code</li>
+<li>Naturally recursive operations (size, rendering, search) fall out of the uniform interface</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Can make it harder to restrict what kinds of children a composite accepts (a `Folder` can technically hold anything implementing `FileSystemNode`)</li>
+<li>Overly general if the hierarchy is shallow and fixed (e.g. exactly one level, never nested) — a plain list may be simpler</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Data is naturally tree-shaped (files/folders, UI widgets, menus, organization charts, comment threads) and you want
+uniform operations across leaves and composites.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>If the hierarchy never actually nests (it’s really just “a group of items,” not a tree), a plain collection is
+simpler and avoids the ceremony of a composite/leaf class split.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>Identify Composite by the phrase “treat a single object and a group of objects the same way.”</li>
+<li>Mention that Composite pairs naturally with <a href="/lld-patterns-hub/behavioral/iterator/">Iterator</a> (to walk the
+tree) and <a href="/lld-patterns-hub/behavioral/template-method/">Visitor-like traversal</a> for operations that vary
+by node type without changing the node classes.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/structural/decorator/">Decorator</a> — both use recursive, uniform-interface structures, but Decorator models layered behavior around one object, not a part-whole tree.</li>
+<li><a href="/lld-patterns-hub/behavioral/iterator/">Iterator</a> — commonly used to traverse a Composite tree without exposing its internal structure.</li>
+<li><a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a> — Composite is one of the strongest real-world arguments for “has-a” over “is-a” trees.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/structural/facade/"><div class="dir">← Previous</div><div>Facade</div></a>
+<a href="/lld-patterns-hub/structural/proxy/" class="to-next"><div class="dir">Next →</div><div>Proxy</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

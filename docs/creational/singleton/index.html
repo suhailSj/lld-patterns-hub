@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Singleton · LLD Patterns Hub</title>
+<meta name="description" content="Ensure a class has exactly one instance, and provide a single, well-known point of access to it." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Singleton · LLD Patterns Hub" />
+<meta property="og:description" content="Ensure a class has exactly one instance, and provide a single, well-known point of access to it." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/" aria-current="page">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Creational Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Creational Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/creational/singleton/" aria-current="page">Singleton</a></li>
+<li><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a></li>
+<li><a href="/lld-patterns-hub/creational/abstract-factory/">Abstract Factory</a></li>
+<li><a href="/lld-patterns-hub/creational/builder/">Builder</a></li>
+<li><a href="/lld-patterns-hub/creational/prototype/">Prototype</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/creational/">Creational Patterns</a> / Singleton</p>
+
+    <article class="prose">
+      <h1>Singleton</h1>
+      <div class="pattern-meta"><span class="tag">Creational</span><span class="tag">GoF</span><span class="tag">app configuration</span></div>
+      <p class="summary-lede">Ensure a class has exactly one instance, and provide a single, well-known point of access to it.</p>
+<h2>What problem it solves</h2>
+<p>Some resources genuinely make sense to have exactly one of at runtime: an application’s configuration store, a
+connection pool, a logging sink, an in-memory cache registry. If two parts of the code each create their own
+<code>AppConfig</code>, they can silently disagree — one holds stale settings while the other has fresh ones. Singleton
+guarantees that every caller gets <strong>the same object</strong>, so state stays consistent.</p>
+<h2>When to use</h2>
+<ul>
+<li>There must be exactly one coordinating instance (a hardware interface, a single connection pool, a feature-flag
+cache) and having two would cause bugs or wasted resources.</li>
+<li>The instance is expensive to create and it’s safe/desirable to reuse it for the life of the application.</li>
+<li>You want a single, globally reachable access point — but you’re aware that’s also the pattern’s biggest risk (see
+below).</li>
+</ul>
+<h2>When not to use</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 Singleton is often a smell, not a solution</div>
+<p>Singleton is one of the most <strong>overused</strong> patterns. It effectively creates global mutable state, which makes unit
+testing hard (tests can leak state into each other through the shared instance) and hides a class’s dependencies
+(any method can reach out to the singleton instead of declaring what it needs). Prefer passing a single, shared
+instance in through the constructor (<strong>dependency injection</strong>) and only reach for a true Singleton when a
+dependency-injection container isn’t available or the “one instance” rule must be enforced by the language/runtime
+itself.</p>
+</div>
+<ul>
+<li>Avoid it for anything you might reasonably want more than one of later (e.g. “the” database connection — you may
+need a read replica connection too).</li>
+<li>Avoid it purely as a shortcut to avoid passing parameters through a few layers of calls — that’s a coupling problem
+Singleton papers over rather than solves.</li>
+<li>Avoid it in multi-tenant systems where “one instance per process” is actually the wrong scope (you often want one
+instance <em>per tenant/request</em>, not one for the whole process).</li>
+</ul>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>              ┌────────────────────────┐
+              │      AppConfig         │
+              ├────────────────────────┤
+              │ - _instance: AppConfig │ (class-level, private)
+              ├────────────────────────┤
+              │ + get_instance(): AppConfig │ ◀── the only way in
+              │ - __init__() (guarded)      │
+              └────────────────────────┘
+</code></pre>
+<p>The key structural idea: the constructor is hidden or guarded, and a static/class-level method or property is the
+only supported way to obtain the instance. Everything funnels through that one access point.</p>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Make it impossible (or at least strongly discouraged) to call the constructor directly from outside the class.</li>
+<li>Store the one instance in a class-level variable.</li>
+<li>On first access, create the instance; on every later access, return the same object.</li>
+<li>In multi-threaded runtimes (Java), guard the creation step so two threads can’t both create an instance at the
+same time — this is the classic “double-checked locking” concern.</li>
+</ol>
+<h2>Python example</h2>
+<p>Python doesn’t have private constructors, so the idiomatic approach overrides <code>__new__</code> (the method that actually
+allocates the object, called before <code>__init__</code>) to intercept instance creation.</p>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">import</span> threading
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AppConfig</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Loads and holds application configuration exactly once per process.&quot;&quot;&quot;</span>
+
+    _instance: <span class="hljs-string">&quot;AppConfig | None&quot;</span> = <span class="hljs-literal">None</span>
+    _lock = threading.Lock()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__new__</span>(<span class="hljs-params">cls</span>):
+        <span class="hljs-keyword">if</span> cls._instance <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+            <span class="hljs-keyword">with</span> cls._lock:                <span class="hljs-comment"># double-checked locking</span>
+                <span class="hljs-keyword">if</span> cls._instance <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:   <span class="hljs-comment"># avoid a race between two threads</span>
+                    instance = <span class="hljs-built_in">super</span>().__new__(cls)
+                    instance._settings = cls._load_settings()
+                    cls._instance = instance
+        <span class="hljs-keyword">return</span> cls._instance
+
+<span class="hljs-meta">    @staticmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_load_settings</span>() -&gt; <span class="hljs-built_in">dict</span>:
+        <span class="hljs-comment"># In real life: read a config file / environment / secrets manager.</span>
+        <span class="hljs-keyword">return</span> {<span class="hljs-string">&quot;max_retries&quot;</span>: <span class="hljs-number">3</span>, <span class="hljs-string">&quot;timeout_seconds&quot;</span>: <span class="hljs-number">30</span>}
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get</span>(<span class="hljs-params">self, key: <span class="hljs-built_in">str</span></span>):
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._settings.get(key)
+
+<span class="hljs-comment"># --- usage ---</span>
+config_a = AppConfig()
+config_b = AppConfig()
+<span class="hljs-keyword">assert</span> config_a <span class="hljs-keyword">is</span> config_b  <span class="hljs-comment"># same object, loaded only once</span>
+<span class="hljs-built_in">print</span>(config_a.get(<span class="hljs-string">&quot;timeout_seconds&quot;</span>))  <span class="hljs-comment"># 30</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AppConfig</span> {
+
+    <span class="hljs-comment">// volatile so other threads see a fully constructed instance, not a</span>
+    <span class="hljs-comment">// partially-initialized one, once it&#x27;s assigned.</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">volatile</span> AppConfig instance;
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> java.util.Map&lt;String, Object&gt; settings;
+
+    <span class="hljs-comment">// Private constructor: nobody outside this class can call `new AppConfig()`.</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-title function_">AppConfig</span><span class="hljs-params">()</span> {
+        <span class="hljs-built_in">this</span>.settings = loadSettings();
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> AppConfig <span class="hljs-title function_">getInstance</span><span class="hljs-params">()</span> {
+        <span class="hljs-type">AppConfig</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> instance;
+        <span class="hljs-keyword">if</span> (result == <span class="hljs-literal">null</span>) {                       <span class="hljs-comment">// first check (no locking, fast path)</span>
+            <span class="hljs-keyword">synchronized</span> (AppConfig.class) {
+                result = instance;
+                <span class="hljs-keyword">if</span> (result == <span class="hljs-literal">null</span>) {                <span class="hljs-comment">// second check, inside the lock</span>
+                    instance = result = <span class="hljs-keyword">new</span> <span class="hljs-title class_">AppConfig</span>();
+                }
+            }
+        }
+        <span class="hljs-keyword">return</span> result;
+    }
+
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> java.util.Map&lt;String, Object&gt; <span class="hljs-title function_">loadSettings</span><span class="hljs-params">()</span> {
+        <span class="hljs-comment">// In real life: read a config file / environment / secrets manager.</span>
+        <span class="hljs-keyword">return</span> java.util.Map.of(<span class="hljs-string">&quot;maxRetries&quot;</span>, <span class="hljs-number">3</span>, <span class="hljs-string">&quot;timeoutSeconds&quot;</span>, <span class="hljs-number">30</span>);
+    }
+
+    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">get</span><span class="hljs-params">(String key)</span> {
+        <span class="hljs-keyword">return</span> settings.get(key);
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// AppConfig a = AppConfig.getInstance();</span>
+<span class="hljs-comment">// AppConfig b = AppConfig.getInstance();</span>
+<span class="hljs-comment">// assert a == b; // same object, loaded only once</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong></p>
+<ul>
+<li><strong>Python</strong> has no access modifiers, so “private constructor” isn’t enforceable — the community convention is to
+override <code>__new__</code>, or more simply, to just use a <strong>module</strong> (Python modules are already singletons: import it once,
+get the same object everywhere) instead of a class at all. A module-level <code>config = AppConfig()</code> at the bottom of
+a file is often the more idiomatic Python singleton than the class-based version above.</li>
+<li><strong>Java</strong> requires explicit <code>synchronized</code>/<code>volatile</code> handling because the JVM can run the getter from multiple
+threads simultaneously; an alternative that sidesteps locking entirely is an <strong>enum singleton</strong>
+(<code>enum AppConfig { INSTANCE; ... }</code>), which the JVM guarantees is instantiated exactly once, thread-safely, for free.</li>
+</ul>
+<h2>Real-world example</h2>
+<p><code>java.lang.Runtime.getRuntime()</code> in the JVM standard library is a textbook Singleton — there’s exactly one <code>Runtime</code>
+object representing the current process, and <code>getRuntime()</code> is the only way to obtain it. Similarly, most logging
+frameworks (Python’s <code>logging.getLogger(name)</code>, Java’s <code>LoggerFactory.getLogger</code>) return the <em>same</em> logger instance
+for a given name so that log configuration applied once is visible everywhere.</p>
+<h2>Advantages and tradeoffs</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Advantages</h4>
+<ul>
+<li>Guarantees a single, consistent source of truth for shared state</li>
+<li>Lazy initialization — the expensive object is only created if/when it's actually needed</li>
+<li>Saves memory/resources versus creating many copies of an expensive object</li>
+</ul>
+</div>
+<div>
+<h4>❌ Tradeoffs</h4>
+<ul>
+<li>Introduces global mutable state, which makes unit tests order-dependent unless you add a reset hook</li>
+<li>Hides a class's real dependencies (a method can silently reach for the singleton instead of receiving it)</li>
+<li>Hard to swap for a test double without extra indirection (an interface + injectable instance)</li>
+<li>Doesn't play well with multi-tenant or per-request scoping</li>
+</ul>
+</div>
+</div>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>If asked to implement Singleton, also mention <em>why you’d think twice before using it</em> — interviewers often
+follow up with “how would you test code that depends on this?” A strong answer: inject the singleton instance (or an
+interface it implements) through the constructor instead of calling <code>getInstance()</code> deep inside business
+logic, so tests can substitute a fake.</p>
+</div>
+<h2>Related patterns</h2>
+<ul>
+<li><strong>Builder</strong> and <strong>Factory Method</strong> are sometimes combined with Singleton — a factory itself is often implemented
+as a Singleton, since you only need one factory instance.</li>
+<li><a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a> is the usual alternative when
+you want “one shared instance” without the testability problems of a hard-coded <code>getInstance()</code> call.</li>
+<li><strong>Multiton</strong> (not covered separately here) generalizes Singleton to “one instance per key” — useful when you
+actually need a small, bounded set of instances (e.g. one connection pool per database).</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<span></span>
+<a href="/lld-patterns-hub/creational/factory-method/" class="to-next"><div class="dir">Next →</div><div>Factory Method</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

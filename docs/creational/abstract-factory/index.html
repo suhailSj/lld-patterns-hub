@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Abstract Factory · LLD Patterns Hub</title>
+<meta name="description" content="Provide an interface for creating families of related objects, without specifying their concrete classes." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Abstract Factory · LLD Patterns Hub" />
+<meta property="og:description" content="Provide an interface for creating families of related objects, without specifying their concrete classes." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/" aria-current="page">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Creational Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Creational Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/creational/singleton/">Singleton</a></li>
+<li><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a></li>
+<li><a href="/lld-patterns-hub/creational/abstract-factory/" aria-current="page">Abstract Factory</a></li>
+<li><a href="/lld-patterns-hub/creational/builder/">Builder</a></li>
+<li><a href="/lld-patterns-hub/creational/prototype/">Prototype</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/creational/">Creational Patterns</a> / Abstract Factory</p>
+
+    <article class="prose">
+      <h1>Abstract Factory</h1>
+      <div class="pattern-meta"><span class="tag">Creational</span><span class="tag">GoF</span><span class="tag">UI theming</span></div>
+      <p class="summary-lede">Provide an interface for creating families of related objects, without specifying their concrete classes.</p>
+<h2>What problem it solves</h2>
+<p>A UI toolkit supports light and dark themes. Each theme needs a matching <code>Button</code> and <code>Checkbox</code> — a dark-theme
+button rendered next to a light-theme checkbox would look broken. Abstract Factory guarantees that whichever theme
+you pick, every widget you create from that point on belongs to the same, consistent family.</p>
+<h2>When to use</h2>
+<ul>
+<li>You need to create several <em>related</em> objects that must be used together, and the app has more than one such
+“family” (light/dark theme, per-region payment provider set, per-database driver set).</li>
+<li>You want to swap an entire family of objects (e.g. switch the whole UI theme) by changing one line — which
+concrete factory is used — rather than touching every place a widget is created.</li>
+</ul>
+<h2>When not to use</h2>
+<ul>
+<li>If you only ever create one kind of object (not a <em>family</em> of related ones), a plain <a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a> is simpler and sufficient.</li>
+<li>Adding a new product to every family (e.g. adding <code>Slider</code> to both Light and Dark) means touching every concrete
+factory — Abstract Factory trades “easy to add a new family” for “harder to add a new product type.”</li>
+</ul>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>        «interface»                         «interface»          «interface»
+        UIFactory                             Button              Checkbox
+  + create_button(): Button          ▲                     ▲
+  + create_checkbox(): Checkbox      │                     │
+         ▲                    LightButton/DarkButton  LightCheckbox/DarkCheckbox
+   ┌─────┴──────┐
+LightUIFactory  DarkUIFactory   ◀── each produces a matching, consistent set
+</code></pre>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Button</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">render</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Checkbox</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">render</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LightButton</span>(<span class="hljs-title class_ inherited__">Button</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">render</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;[ Light Button ]&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LightCheckbox</span>(<span class="hljs-title class_ inherited__">Checkbox</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">render</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;[ ] Light Checkbox&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DarkButton</span>(<span class="hljs-title class_ inherited__">Button</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">render</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;[ Dark Button ]&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DarkCheckbox</span>(<span class="hljs-title class_ inherited__">Checkbox</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">render</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;[x] Dark Checkbox&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">UIFactory</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Guarantees every product it returns belongs to the same visual family.&quot;&quot;&quot;</span>
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">create_button</span>(<span class="hljs-params">self</span>) -&gt; Button: ...
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">create_checkbox</span>(<span class="hljs-params">self</span>) -&gt; Checkbox: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LightUIFactory</span>(<span class="hljs-title class_ inherited__">UIFactory</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">create_button</span>(<span class="hljs-params">self</span>) -&gt; Button:
+        <span class="hljs-keyword">return</span> LightButton()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">create_checkbox</span>(<span class="hljs-params">self</span>) -&gt; Checkbox:
+        <span class="hljs-keyword">return</span> LightCheckbox()
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DarkUIFactory</span>(<span class="hljs-title class_ inherited__">UIFactory</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">create_button</span>(<span class="hljs-params">self</span>) -&gt; Button:
+        <span class="hljs-keyword">return</span> DarkButton()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">create_checkbox</span>(<span class="hljs-params">self</span>) -&gt; Checkbox:
+        <span class="hljs-keyword">return</span> DarkCheckbox()
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">render_settings_panel</span>(<span class="hljs-params">factory: UIFactory</span>) -&gt; <span class="hljs-literal">None</span>:
+    <span class="hljs-comment"># This function never mentions Light/Dark by name — swap the factory, swap the theme.</span>
+    <span class="hljs-built_in">print</span>(factory.create_button().render())
+    <span class="hljs-built_in">print</span>(factory.create_checkbox().render())
+
+<span class="hljs-comment"># --- usage ---</span>
+user_prefers_dark_mode = <span class="hljs-literal">True</span>
+factory: UIFactory = DarkUIFactory() <span class="hljs-keyword">if</span> user_prefers_dark_mode <span class="hljs-keyword">else</span> LightUIFactory()
+render_settings_panel(factory)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">Button</span> {
+    String <span class="hljs-title function_">render</span><span class="hljs-params">()</span>;
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">Checkbox</span> {
+    String <span class="hljs-title function_">render</span><span class="hljs-params">()</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LightButton</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Button</span> {
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">render</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;[ Light Button ]&quot;</span>; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LightCheckbox</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Checkbox</span> {
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">render</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;[ ] Light Checkbox&quot;</span>; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DarkButton</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Button</span> {
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">render</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;[ Dark Button ]&quot;</span>; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DarkCheckbox</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Checkbox</span> {
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">render</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;[x] Dark Checkbox&quot;</span>; }
+}
+
+<span class="hljs-comment">// Guarantees every product it returns belongs to the same visual family.</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">UIFactory</span> {
+    Button <span class="hljs-title function_">createButton</span><span class="hljs-params">()</span>;
+    Checkbox <span class="hljs-title function_">createCheckbox</span><span class="hljs-params">()</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LightUIFactory</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">UIFactory</span> {
+    <span class="hljs-keyword">public</span> Button <span class="hljs-title function_">createButton</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LightButton</span>(); }
+    <span class="hljs-keyword">public</span> Checkbox <span class="hljs-title function_">createCheckbox</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">LightCheckbox</span>(); }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DarkUIFactory</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">UIFactory</span> {
+    <span class="hljs-keyword">public</span> Button <span class="hljs-title function_">createButton</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DarkButton</span>(); }
+    <span class="hljs-keyword">public</span> Checkbox <span class="hljs-title function_">createCheckbox</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DarkCheckbox</span>(); }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SettingsPanel</span> {
+    <span class="hljs-comment">// This method never mentions Light/Dark by name — swap the factory, swap the theme.</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">render</span><span class="hljs-params">(UIFactory factory)</span> {
+        System.out.println(factory.createButton().render());
+        System.out.println(factory.createCheckbox().render());
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// boolean userPrefersDarkMode = true;</span>
+<span class="hljs-comment">// UIFactory factory = userPrefersDarkMode ? new DarkUIFactory() : new LightUIFactory();</span>
+<span class="hljs-comment">// SettingsPanel.render(factory);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> structurally identical in both languages — Abstract Factory is really just “a Factory Method per
+product, grouped behind one interface.” Java’s static typing makes the guarantee explicit at compile time (a
+<code>DarkUIFactory</code> cannot accidentally return a <code>LightButton</code>); Python relies on the same discipline without compiler
+enforcement.</p>
+<h2>Real-world example</h2>
+<p>Cross-platform GUI frameworks are the textbook case: a <code>WidgetFactory</code> per operating system (Windows, macOS, Linux)
+ensures every button, checkbox, and menu rendered on Windows looks and behaves like a native Windows widget, and
+switching platforms swaps the entire factory rather than each widget individually. Database driver families
+(<code>ConnectionFactory</code>, <code>StatementFactory</code>, <code>ResultSetFactory</code> per vendor) are another common real-world instance.</p>
+<h2>Advantages and tradeoffs</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Advantages</h4>
+<ul>
+<li>Guarantees consistency within a family — impossible to accidentally mix Light and Dark widgets</li>
+<li>Swapping an entire family is a one-line change (swap which factory is constructed)</li>
+<li>Client code depends only on abstract product/factory interfaces</li>
+</ul>
+</div>
+<div>
+<h4>❌ Tradeoffs</h4>
+<ul>
+<li>Adding a new product (e.g. `Slider`) means updating the abstract factory interface and every concrete factory</li>
+<li>More upfront classes/interfaces than a single Factory Method</li>
+<li>Overkill if you only ever have one family in practice</li>
+</ul>
+</div>
+</div>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>The fastest way to show you understand the difference from Factory Method: say the word “family.” Factory Method
+creates <em>one</em> product; Abstract Factory creates a <em>matching set</em> of products that must stay
+consistent with each other. See the <a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a> for the full comparison table.</p>
+</div>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a> — Abstract Factory is commonly implemented as several Factory Methods grouped behind one interface.</li>
+<li><a href="/lld-patterns-hub/creational/builder/">Builder</a> — use Builder instead when a single product is complex to assemble step-by-step; use Abstract Factory when the complexity is in choosing a <em>consistent family</em>, not assembling one object.</li>
+<li><a href="/lld-patterns-hub/structural/bridge/">Bridge</a> — both patterns decouple an abstraction from multiple implementations, but Bridge is about letting one abstraction vary independently from its implementation, not about creating families of objects.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/creational/factory-method/"><div class="dir">← Previous</div><div>Factory Method</div></a>
+<a href="/lld-patterns-hub/creational/builder/" class="to-next"><div class="dir">Next →</div><div>Builder</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

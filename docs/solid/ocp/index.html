@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Open/Closed Principle · LLD Patterns Hub</title>
+<meta name="description" content="Software entities should be open for extension, but closed for modification." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Open/Closed Principle · LLD Patterns Hub" />
+<meta property="og:description" content="Software entities should be open for extension, but closed for modification." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/" aria-current="page">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 SOLID Principles</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>SOLID Principles</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/solid/srp/">Single Responsibility Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/ocp/" aria-current="page">Open/Closed Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/lsp/">Liskov Substitution Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/isp/">Interface Segregation Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/dip/">Dependency Inversion Principle</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/solid/">SOLID Principles</a> / Open/Closed Principle</p>
+
+    <article class="prose">
+      <h1>Open/Closed Principle</h1>
+      <div class="pattern-meta"><span class="tag">SOLID</span><span class="tag">extensibility</span><span class="tag">checkout discounts</span></div>
+      <p class="summary-lede">Software entities should be open for extension, but closed for modification.</p>
+<h2>Intent / definition</h2>
+<p><strong>Open/Closed Principle (OCP):</strong> a class, module, or function should be <strong>open for extension</strong> (you can make it do
+new things) but <strong>closed for modification</strong> (you don’t have to edit its existing, tested source to do so). In
+practice this almost always means: program against an abstraction, and add new behavior by writing a new
+implementation of that abstraction rather than adding another <code>if</code>/<code>elif</code> branch to an existing one.</p>
+<h2>Problem statement</h2>
+<p>An e-commerce checkout needs to apply a discount to an order: percentage-off, a flat amount off, or “buy one get one
+free.” New promotion types get added every quarter by the marketing team.</p>
+<h2>Why the naive design fails</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 The growing if/elif chain</div>
+<p>The obvious first implementation is a single <code>DiscountCalculator.apply(order, discount_type)</code> method with an
+<code>if/elif</code> (or <code>switch</code>) over every known discount type. It works — until promotion #7 needs to ship, at which point
+you’re editing a method that promotions #1 through #6 already depend on and already have tests for. Every new
+promotion risks breaking an old one, and the method never stops growing.</p>
+</div>
+<p>This design:</p>
+<ul>
+<li>forces you to modify and re-test a shared, already-shipped class for every new requirement;</li>
+<li>couples unrelated discount types together in one method, so a bug in the “BOGO” branch can be introduced while
+touching the “percentage-off” branch;</li>
+<li>makes ownership fuzzy — marketing wants new promotion types shipped fast, but every change requires touching code
+that engineering already regression-tested for older promotions.</li>
+</ul>
+<h2>Solution overview</h2>
+<p>Define a small <code>Discount</code> abstraction with one method, <code>apply(order)</code>. Each discount type becomes its own class that
+implements this method. <code>DiscountCalculator</code> (or the checkout service) depends only on the abstraction and a
+<em>list</em> of discounts to apply — it never needs to change when a new discount type is added; you simply write a new
+class and register it.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>        «interface»
+          Discount
+       + apply(order): float
+             ▲
+   ┌─────────┼──────────────┐
+PercentageDiscount   FlatAmountDiscount   BuyOneGetOneDiscount
+   (implements)         (implements)          (implements)
+
+CheckoutService --- depends on ---&gt; Discount (never on concrete classes)
+</code></pre>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Identify the axis of change — here, “which discount rule applies.”</li>
+<li>Extract a one-method interface/abstract class (<code>Discount</code>) representing that axis.</li>
+<li>Move each existing <code>if</code> branch into its own class implementing the interface.</li>
+<li>Change the caller (<code>CheckoutService</code>) to accept a list/collection of <code>Discount</code> objects instead of a type flag.</li>
+<li>Adding a new promotion is now: write one new class, register it — zero edits to <code>CheckoutService</code> or existing
+discount classes.</li>
+</ol>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Discount</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;The one axis of extension: how a discount computes its reduction.&quot;&quot;&quot;</span>
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">apply</span>(<span class="hljs-params">self, subtotal: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-built_in">float</span>:
+        <span class="hljs-string">&quot;&quot;&quot;Returns the amount to subtract from subtotal.&quot;&quot;&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PercentageDiscount</span>(<span class="hljs-title class_ inherited__">Discount</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, percent: <span class="hljs-built_in">float</span></span>):
+        <span class="hljs-variable language_">self</span>.percent = percent
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">apply</span>(<span class="hljs-params">self, subtotal: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-built_in">float</span>:
+        <span class="hljs-keyword">return</span> subtotal * (<span class="hljs-variable language_">self</span>.percent / <span class="hljs-number">100</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FlatAmountDiscount</span>(<span class="hljs-title class_ inherited__">Discount</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, amount: <span class="hljs-built_in">float</span></span>):
+        <span class="hljs-variable language_">self</span>.amount = amount
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">apply</span>(<span class="hljs-params">self, subtotal: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-built_in">float</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">min</span>(<span class="hljs-variable language_">self</span>.amount, subtotal)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FreeShippingDiscount</span>(<span class="hljs-title class_ inherited__">Discount</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, shipping_cost: <span class="hljs-built_in">float</span></span>):
+        <span class="hljs-variable language_">self</span>.shipping_cost = shipping_cost
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">apply</span>(<span class="hljs-params">self, subtotal: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-built_in">float</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.shipping_cost
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CheckoutService</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Closed for modification: adding a new Discount type never touches this class.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">total_after_discounts</span>(<span class="hljs-params">self, subtotal: <span class="hljs-built_in">float</span>, discounts: <span class="hljs-built_in">list</span>[Discount]</span>) -&gt; <span class="hljs-built_in">float</span>:
+        reduction = <span class="hljs-built_in">sum</span>(d.apply(subtotal) <span class="hljs-keyword">for</span> d <span class="hljs-keyword">in</span> discounts)
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">max</span>(<span class="hljs-number">0.0</span>, subtotal - reduction)
+
+<span class="hljs-comment"># --- usage ---</span>
+checkout = CheckoutService()
+discounts = [PercentageDiscount(<span class="hljs-number">10</span>), FlatAmountDiscount(<span class="hljs-number">5</span>)]
+<span class="hljs-built_in">print</span>(checkout.total_after_discounts(<span class="hljs-number">200.0</span>, discounts))  <span class="hljs-comment"># 175.0</span>
+
+<span class="hljs-comment"># New quarter, new promo type — CheckoutService is untouched:</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LoyaltyPointsDiscount</span>(<span class="hljs-title class_ inherited__">Discount</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, points: <span class="hljs-built_in">int</span></span>):
+        <span class="hljs-variable language_">self</span>.points = points
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">apply</span>(<span class="hljs-params">self, subtotal: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-built_in">float</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">min</span>(<span class="hljs-variable language_">self</span>.points * <span class="hljs-number">0.01</span>, subtotal)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.List;
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">Discount</span> {
+    <span class="hljs-comment">// The one axis of extension: how a discount computes its reduction.</span>
+    <span class="hljs-type">double</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(<span class="hljs-type">double</span> subtotal)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PercentageDiscount</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Discount</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">double</span> percent;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">PercentageDiscount</span><span class="hljs-params">(<span class="hljs-type">double</span> percent)</span> { <span class="hljs-built_in">this</span>.percent = percent; }
+    <span class="hljs-keyword">public</span> <span class="hljs-type">double</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(<span class="hljs-type">double</span> subtotal)</span> { <span class="hljs-keyword">return</span> subtotal * (percent / <span class="hljs-number">100</span>); }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FlatAmountDiscount</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Discount</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">double</span> amount;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">FlatAmountDiscount</span><span class="hljs-params">(<span class="hljs-type">double</span> amount)</span> { <span class="hljs-built_in">this</span>.amount = amount; }
+    <span class="hljs-keyword">public</span> <span class="hljs-type">double</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(<span class="hljs-type">double</span> subtotal)</span> { <span class="hljs-keyword">return</span> Math.min(amount, subtotal); }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FreeShippingDiscount</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Discount</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">double</span> shippingCost;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">FreeShippingDiscount</span><span class="hljs-params">(<span class="hljs-type">double</span> shippingCost)</span> { <span class="hljs-built_in">this</span>.shippingCost = shippingCost; }
+    <span class="hljs-keyword">public</span> <span class="hljs-type">double</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(<span class="hljs-type">double</span> subtotal)</span> { <span class="hljs-keyword">return</span> shippingCost; }
+}
+
+<span class="hljs-comment">// Closed for modification: adding a new Discount type never touches this class.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CheckoutService</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">double</span> <span class="hljs-title function_">totalAfterDiscounts</span><span class="hljs-params">(<span class="hljs-type">double</span> subtotal, List&lt;Discount&gt; discounts)</span> {
+        <span class="hljs-type">double</span> <span class="hljs-variable">reduction</span> <span class="hljs-operator">=</span> discounts.stream().mapToDouble(d -&gt; d.apply(subtotal)).sum();
+        <span class="hljs-keyword">return</span> Math.max(<span class="hljs-number">0.0</span>, subtotal - reduction);
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// CheckoutService checkout = new CheckoutService();</span>
+<span class="hljs-comment">// var discounts = List.&lt;Discount&gt;of(new PercentageDiscount(10), new FlatAmountDiscount(5));</span>
+<span class="hljs-comment">// System.out.println(checkout.totalAfterDiscounts(200.0, discounts)); // 175.0</span>
+
+<span class="hljs-comment">// New quarter, new promo type — CheckoutService is untouched:</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LoyaltyPointsDiscount</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Discount</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> points;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">LoyaltyPointsDiscount</span><span class="hljs-params">(<span class="hljs-type">int</span> points)</span> { <span class="hljs-built_in">this</span>.points = points; }
+    <span class="hljs-keyword">public</span> <span class="hljs-type">double</span> <span class="hljs-title function_">apply</span><span class="hljs-params">(<span class="hljs-type">double</span> subtotal)</span> { <span class="hljs-keyword">return</span> Math.min(points * <span class="hljs-number">0.01</span>, subtotal); }
+}
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Python’s <code>ABC</code> + <code>@abstractmethod</code> gives you the same “must implement this method” contract that
+Java’s <code>interface</code> gives natively. Because Python is duck-typed, you could even skip <code>ABC</code> entirely and just write
+classes with an <code>apply</code> method — OCP is a design discipline, not something either language enforces at compile time
+(Java gets closer, since a class that “implements” an interface but omits a method fails to compile).</p>
+<h2>Real-world example</h2>
+<p>Payment gateways are a common real example: a <code>PaymentProcessor</code> interface with <code>charge(amount)</code>, implemented by
+<code>StripeProcessor</code>, <code>PayPalProcessor</code>, <code>ApplePayProcessor</code>. Adding support for a new payment provider never requires
+touching the checkout code that already works for the existing providers — you add one new class.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>New requirements are additive (new files), not edits to shared, tested code</li>
+<li>Reduces regression risk — old discount types can't be broken while adding a new one</li>
+<li>Each discount type is independently unit-testable</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Requires anticipating the right abstraction up front — guessing wrong adds indirection without benefit</li>
+<li>More classes/files for what might have been a three-line <code>if</code> statement</li>
+<li>Can be over-applied ("abstract everything") when a concrete piece of logic will realistically never change</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>A class already has (or clearly will grow) a branching statement selecting behavior by “type.”</li>
+<li>Different teams or timelines own different branches of that behavior (marketing ships promotions; engineering ships the checkout).</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>Don’t introduce an interface for a single, stable implementation “just in case” — that’s speculative generality.</li>
+<li>If the set of variants is small, fixed, and genuinely will never grow (e.g. “north/south/east/west”), a simple
+conditional can be clearer than an abstraction layer.</li>
+</ul>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>A strong interview answer names the axis of change explicitly: “the thing that varies here is <em>how the discount
+is computed</em>, so that’s what I’ll extract into an interface — everything else about checkout stays the same.”</p>
+</div>
+<h2>Interview talking points</h2>
+<ul>
+<li>OCP is usually demonstrated, not just defined: show the <code>if/elif</code> version, name its risk, then show the
+interface-based version.</li>
+<li>Mention that OCP and the Strategy pattern are nearly the same idea — Strategy is often described as “OCP applied to
+runtime-selectable algorithms.”</li>
+<li>Be ready to push back on over-abstraction: OCP isn’t “make everything an interface,” it’s “isolate the parts that
+actually vary.”</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a> — the behavioral pattern most directly modeling OCP: interchangeable algorithms behind one interface.</li>
+<li><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a> — often used alongside OCP to decide <em>which</em> concrete strategy/discount to instantiate without a switch statement leaking into client code.</li>
+<li><a href="/lld-patterns-hub/solid/srp/">Single Responsibility Principle</a> — SRP is usually the prerequisite: you can’t cleanly extend a class that already has five unrelated responsibilities.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/solid/srp/"><div class="dir">← Previous</div><div>Single Responsibility Principle</div></a>
+<a href="/lld-patterns-hub/solid/lsp/" class="to-next"><div class="dir">Next →</div><div>Liskov Substitution Principle</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

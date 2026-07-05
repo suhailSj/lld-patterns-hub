@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Adapter · LLD Patterns Hub</title>
+<meta name="description" content="Convert the interface of a class into another interface clients expect, letting incompatible interfaces work together." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Adapter · LLD Patterns Hub" />
+<meta property="og:description" content="Convert the interface of a class into another interface clients expect, letting incompatible interfaces work together." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/" aria-current="page">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Structural Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Structural Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/structural/adapter/" aria-current="page">Adapter</a></li>
+<li><a href="/lld-patterns-hub/structural/decorator/">Decorator</a></li>
+<li><a href="/lld-patterns-hub/structural/facade/">Facade</a></li>
+<li><a href="/lld-patterns-hub/structural/composite/">Composite</a></li>
+<li><a href="/lld-patterns-hub/structural/proxy/">Proxy</a></li>
+<li><a href="/lld-patterns-hub/structural/bridge/">Bridge</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/structural/">Structural Patterns</a> / Adapter</p>
+
+    <article class="prose">
+      <h1>Adapter</h1>
+      <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">payment processing</span></div>
+      <p class="summary-lede">Convert the interface of a class into another interface clients expect, letting incompatible interfaces work together.</p>
+<h2>Explanation in simple terms</h2>
+<p>Adapter is a translator. Your checkout code expects every payment provider to expose <code>charge(amount_cents)</code>. A
+legacy payment gateway you must integrate with instead exposes <code>makePaymentInDollars(amountStr)</code> and returns an XML
+string. You can’t change the legacy gateway (it’s a third-party SDK) and you don’t want to change your checkout code
+for every provider. Adapter wraps the legacy gateway behind the interface your code already expects.</p>
+<h2>Practical example</h2>
+<div class="callout warn">
+<div class="callout-title">⚠️ Why not just edit the legacy class?</div>
+<p>The legacy gateway is a vendor SDK — you don’t own its source, and it’s shared by other teams who depend on its
+existing method signatures. Editing it is not an option, and duplicating checkout logic per provider would violate
+<a href="/lld-patterns-hub/solid/ocp/">Open/Closed</a>. Adapter lets both sides stay untouched.</p>
+</div>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>    «interface»                                LegacyPaymentGateway (third-party, unmodifiable)
+   PaymentProcessor                              + makePaymentInDollars(amountStr): xmlResponse
+   + charge(amount_cents): bool
+          ▲
+          │ implements, wraps
+   LegacyGatewayAdapter ───delegates to───▶ LegacyPaymentGateway
+</code></pre>
+<h2>Python code</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PaymentProcessor</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;The interface checkout code already depends on.&quot;&quot;&quot;</span>
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">charge</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">StripeProcessor</span>(<span class="hljs-title class_ inherited__">PaymentProcessor</span>):
+    <span class="hljs-string">&quot;&quot;&quot;A modern provider that already matches the interface natively.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">charge</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Stripe: charging <span class="hljs-subst">{amount_cents}</span> cents&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LegacyPaymentGateway</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Third-party SDK you cannot modify. Different units, different return type.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">make_payment_in_dollars</span>(<span class="hljs-params">self, amount_str: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;LegacyGateway: charging $<span class="hljs-subst">{amount_str}</span>&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;&lt;response&gt;&lt;status&gt;OK&lt;/status&gt;&lt;/response&gt;&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LegacyGatewayAdapter</span>(<span class="hljs-title class_ inherited__">PaymentProcessor</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Translates the modern interface into calls the legacy SDK understands.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, legacy_gateway: LegacyPaymentGateway</span>):
+        <span class="hljs-variable language_">self</span>._legacy_gateway = legacy_gateway
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">charge</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        amount_str = <span class="hljs-string">f&quot;<span class="hljs-subst">{amount_cents / <span class="hljs-number">100</span>:<span class="hljs-number">.2</span>f}</span>&quot;</span>
+        xml_response = <span class="hljs-variable language_">self</span>._legacy_gateway.make_payment_in_dollars(amount_str)
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;&lt;status&gt;OK&lt;/status&gt;&quot;</span> <span class="hljs-keyword">in</span> xml_response
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">checkout</span>(<span class="hljs-params">processor: PaymentProcessor, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:
+    <span class="hljs-comment"># checkout() never knows or cares whether it&#x27;s talking to Stripe or the legacy gateway.</span>
+    <span class="hljs-keyword">if</span> processor.charge(amount_cents):
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Payment succeeded&quot;</span>)
+
+<span class="hljs-comment"># --- usage ---</span>
+checkout(StripeProcessor(), <span class="hljs-number">4999</span>)
+checkout(LegacyGatewayAdapter(LegacyPaymentGateway()), <span class="hljs-number">4999</span>)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">PaymentProcessor</span> {
+    <span class="hljs-comment">// The interface checkout code already depends on.</span>
+    <span class="hljs-type">boolean</span> <span class="hljs-title function_">charge</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">StripeProcessor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentProcessor</span> {
+    <span class="hljs-comment">// A modern provider that already matches the interface natively.</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">charge</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span> {
+        System.out.println(<span class="hljs-string">&quot;Stripe: charging &quot;</span> + amountCents + <span class="hljs-string">&quot; cents&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+}
+
+<span class="hljs-comment">// Third-party SDK you cannot modify. Different units, different return type.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LegacyPaymentGateway</span> {
+    String <span class="hljs-title function_">makePaymentInDollars</span><span class="hljs-params">(String amountStr)</span> {
+        System.out.println(<span class="hljs-string">&quot;LegacyGateway: charging $&quot;</span> + amountStr);
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;&lt;response&gt;&lt;status&gt;OK&lt;/status&gt;&lt;/response&gt;&quot;</span>;
+    }
+}
+
+<span class="hljs-comment">// Translates the modern interface into calls the legacy SDK understands.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LegacyGatewayAdapter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentProcessor</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> LegacyPaymentGateway legacyGateway;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">LegacyGatewayAdapter</span><span class="hljs-params">(LegacyPaymentGateway legacyGateway)</span> { <span class="hljs-built_in">this</span>.legacyGateway = legacyGateway; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">charge</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span> {
+        <span class="hljs-type">String</span> <span class="hljs-variable">amountStr</span> <span class="hljs-operator">=</span> String.format(<span class="hljs-string">&quot;%.2f&quot;</span>, amountCents / <span class="hljs-number">100.0</span>);
+        <span class="hljs-type">String</span> <span class="hljs-variable">xmlResponse</span> <span class="hljs-operator">=</span> legacyGateway.makePaymentInDollars(amountStr);
+        <span class="hljs-keyword">return</span> xmlResponse.contains(<span class="hljs-string">&quot;&lt;status&gt;OK&lt;/status&gt;&quot;</span>);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Checkout</span> {
+    <span class="hljs-comment">// checkout() never knows or cares whether it&#x27;s talking to Stripe or the legacy gateway.</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">(PaymentProcessor processor, <span class="hljs-type">int</span> amountCents)</span> {
+        <span class="hljs-keyword">if</span> (processor.charge(amountCents)) {
+            System.out.println(<span class="hljs-string">&quot;Payment succeeded&quot;</span>);
+        }
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// Checkout.run(new StripeProcessor(), 4999);</span>
+<span class="hljs-comment">// Checkout.run(new LegacyGatewayAdapter(new LegacyPaymentGateway()), 4999);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> this is an “object adapter” (composition — the adapter holds a reference to the legacy object),
+which both languages express the same way. Java sometimes uses “class adapters” via multiple inheritance tricks in
+languages that support it, but since neither Java nor Python cleanly supports implementation multiple-inheritance for
+this purpose, the object-adapter form shown here is idiomatic in both.</p>
+<h2>Design reasoning</h2>
+<p>The adapter is intentionally “dumb” — it does no business logic, only translation (unit conversion, response format
+conversion). This keeps the translation concern isolated: if the legacy gateway’s XML format changes, only the
+adapter needs updating, not checkout logic or any other payment processor.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Lets incompatible interfaces cooperate without modifying either side</li>
+<li>Isolates messy translation/conversion logic in one small, testable place</li>
+<li>Client code stays uniform regardless of how many differently-shaped things it must integrate with</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Adds an extra layer/class per integration</li>
+<li>Can mask a leaky abstraction if the wrapped system's semantics genuinely don't map cleanly (e.g. the legacy system doesn't support partial refunds and the adapter has to fake it)</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Integrating a third-party library, legacy system, or external API whose interface doesn’t match your code’s
+expected interface, and you can’t (or shouldn’t) change either side.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>If you own both interfaces, just make them consistent instead of adapting — Adapter is a bridge for interfaces you
+don’t control, not a substitute for good API design on your own types.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>Adapter changes <em>only the interface</em>, not the behavior — contrast this explicitly with Decorator, which keeps the
+interface the same but <em>adds</em> behavior.</li>
+<li>Mention “object adapter” (composition, shown here) vs. “class adapter” (inheritance) and why composition is usually
+preferred (works even when the adaptee is <code>final</code>/sealed, and avoids fragile multiple inheritance).</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/structural/facade/">Facade</a> — both wrap something else, but Facade simplifies a whole subsystem’s interface for convenience; Adapter makes one existing interface match another that a client already expects.</li>
+<li><a href="/lld-patterns-hub/structural/decorator/">Decorator</a> — same interface, added behavior — the mirror image of Adapter’s different interface, same behavior.</li>
+<li><a href="/lld-patterns-hub/structural/bridge/">Bridge</a> — Bridge is designed up front to let abstraction and implementation vary independently; Adapter is typically retrofitted after the fact to reconcile two things that weren’t designed together.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<span></span>
+<a href="/lld-patterns-hub/structural/decorator/" class="to-next"><div class="dir">Next →</div><div>Decorator</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

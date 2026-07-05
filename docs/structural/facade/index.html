@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Facade · LLD Patterns Hub</title>
+<meta name="description" content="Provide a single, simplified interface to a complex subsystem made of many interacting parts." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Facade · LLD Patterns Hub" />
+<meta property="og:description" content="Provide a single, simplified interface to a complex subsystem made of many interacting parts." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/" aria-current="page">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Structural Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Structural Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/structural/adapter/">Adapter</a></li>
+<li><a href="/lld-patterns-hub/structural/decorator/">Decorator</a></li>
+<li><a href="/lld-patterns-hub/structural/facade/" aria-current="page">Facade</a></li>
+<li><a href="/lld-patterns-hub/structural/composite/">Composite</a></li>
+<li><a href="/lld-patterns-hub/structural/proxy/">Proxy</a></li>
+<li><a href="/lld-patterns-hub/structural/bridge/">Bridge</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/structural/">Structural Patterns</a> / Facade</p>
+
+    <article class="prose">
+      <h1>Facade</h1>
+      <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">order processing</span></div>
+      <p class="summary-lede">Provide a single, simplified interface to a complex subsystem made of many interacting parts.</p>
+<h2>Explanation in simple terms</h2>
+<p>Placing an order touches inventory (check and reserve stock), payment (charge the card), shipping (schedule a
+carrier pickup), and notifications (email the receipt). A checkout controller shouldn’t need to know the internals
+of all four subsystems just to place an order. Facade gives it one method, <code>place_order(...)</code>, that coordinates the
+subsystems internally.</p>
+<h2>Practical example</h2>
+<div class="callout tip">
+<div class="callout-title">💡 Facade doesn't hide the subsystems — it adds a shortcut</div>
+<p>Advanced callers can still reach the individual subsystems directly (e.g. an admin tool that only needs to re-check
+inventory). Facade doesn’t remove access to <code>InventoryService</code>, <code>PaymentService</code>, etc. — it just gives the common
+case a single, simple entry point.</p>
+</div>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>OrderFacade
+  + place_order(cart, payment_info) ─┬──▶ InventoryService.reserve(items)
+                                       ├──▶ PaymentService.charge(amount)
+                                       ├──▶ ShippingService.schedule(order)
+                                       └──▶ NotificationService.send_receipt(order)
+</code></pre>
+<h2>Python code</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Cart</span>:
+    items: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">str</span>]
+    total_cents: <span class="hljs-built_in">int</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">InventoryService</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">reserve</span>(<span class="hljs-params">self, items: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">str</span>]</span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Inventory: reserving <span class="hljs-subst">{items}</span>&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PaymentService</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">charge</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Payment: charging <span class="hljs-subst">{amount_cents}</span> cents&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ShippingService</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">schedule</span>(<span class="hljs-params">self, items: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">str</span>]</span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Shipping: scheduling pickup for <span class="hljs-subst">{items}</span>&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;TRACK-12345&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">NotificationService</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send_receipt</span>(<span class="hljs-params">self, tracking_code: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Notification: emailing receipt, tracking <span class="hljs-subst">{tracking_code}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderFacade</span>:
+    <span class="hljs-string">&quot;&quot;&quot;One simple entry point coordinating four subsystems.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>._inventory = InventoryService()
+        <span class="hljs-variable language_">self</span>._payment = PaymentService()
+        <span class="hljs-variable language_">self</span>._shipping = ShippingService()
+        <span class="hljs-variable language_">self</span>._notifications = NotificationService()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">place_order</span>(<span class="hljs-params">self, cart: Cart</span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._inventory.reserve(cart.items):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Items not available&quot;</span>)
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._payment.charge(cart.total_cents):
+            <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Payment failed&quot;</span>)
+        tracking_code = <span class="hljs-variable language_">self</span>._shipping.schedule(cart.items)
+        <span class="hljs-variable language_">self</span>._notifications.send_receipt(tracking_code)
+        <span class="hljs-keyword">return</span> tracking_code
+
+<span class="hljs-comment"># --- usage ---</span>
+facade = OrderFacade()
+tracking_code = facade.place_order(Cart(items=[<span class="hljs-string">&quot;Keyboard&quot;</span>, <span class="hljs-string">&quot;Mouse&quot;</span>], total_cents=<span class="hljs-number">11400</span>))
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.List;
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Cart</span> {
+    <span class="hljs-keyword">final</span> List&lt;String&gt; items;
+    <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> totalCents;
+    Cart(List&lt;String&gt; items, <span class="hljs-type">int</span> totalCents) { <span class="hljs-built_in">this</span>.items = items; <span class="hljs-built_in">this</span>.totalCents = totalCents; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">InventoryService</span> {
+    <span class="hljs-type">boolean</span> <span class="hljs-title function_">reserve</span><span class="hljs-params">(List&lt;String&gt; items)</span> {
+        System.out.println(<span class="hljs-string">&quot;Inventory: reserving &quot;</span> + items);
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PaymentService</span> {
+    <span class="hljs-type">boolean</span> <span class="hljs-title function_">charge</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span> {
+        System.out.println(<span class="hljs-string">&quot;Payment: charging &quot;</span> + amountCents + <span class="hljs-string">&quot; cents&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ShippingService</span> {
+    String <span class="hljs-title function_">schedule</span><span class="hljs-params">(List&lt;String&gt; items)</span> {
+        System.out.println(<span class="hljs-string">&quot;Shipping: scheduling pickup for &quot;</span> + items);
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;TRACK-12345&quot;</span>;
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">NotificationService</span> {
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">sendReceipt</span><span class="hljs-params">(String trackingCode)</span> {
+        System.out.println(<span class="hljs-string">&quot;Notification: emailing receipt, tracking &quot;</span> + trackingCode);
+    }
+}
+
+<span class="hljs-comment">// One simple entry point coordinating four subsystems.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderFacade</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">InventoryService</span> <span class="hljs-variable">inventory</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">InventoryService</span>();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">PaymentService</span> <span class="hljs-variable">payment</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PaymentService</span>();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ShippingService</span> <span class="hljs-variable">shipping</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ShippingService</span>();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">NotificationService</span> <span class="hljs-variable">notifications</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NotificationService</span>();
+
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">placeOrder</span><span class="hljs-params">(Cart cart)</span> {
+        <span class="hljs-keyword">if</span> (!inventory.reserve(cart.items)) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;Items not available&quot;</span>);
+        <span class="hljs-keyword">if</span> (!payment.charge(cart.totalCents)) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;Payment failed&quot;</span>);
+        <span class="hljs-type">String</span> <span class="hljs-variable">trackingCode</span> <span class="hljs-operator">=</span> shipping.schedule(cart.items);
+        notifications.sendReceipt(trackingCode);
+        <span class="hljs-keyword">return</span> trackingCode;
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// OrderFacade facade = new OrderFacade();</span>
+<span class="hljs-comment">// String trackingCode = facade.placeOrder(new Cart(List.of(&quot;Keyboard&quot;, &quot;Mouse&quot;), 11400));</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> the pattern is purely structural — there’s nothing language-specific here. In both languages, the
+facade is a thin coordinating class; the real complexity stays in the subsystem classes it wraps.</p>
+<h2>Design reasoning</h2>
+<p>The facade takes on exactly one responsibility: sequencing calls across subsystems for the common case. It
+deliberately contains no business rules of its own (no tax logic, no shipping rate calculation) — those stay owned
+by their respective subsystems, keeping the facade thin and easy to reason about.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Simplifies the common case for callers who don't need subsystem-level detail</li>
+<li>Reduces coupling between client code and the internals of a complex subsystem</li>
+<li>Makes it easier to change subsystem internals later, as long as the facade's own interface stays stable</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Can become a God object if every new subsystem interaction gets piled into the same facade — watch for <a href="/lld-patterns-hub/solid/srp/">SRP</a> violations creeping back in</li>
+<li>Adds one more layer between callers and subsystems</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>A workflow spans several subsystems, and most callers only need the “typical” combination of calls in the typical
+order.</li>
+<li>You’re integrating a complex third-party library or legacy subsystem and want to expose only the 20% of it your
+application actually uses.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>Don’t build a facade in front of a subsystem that’s already simple — it just adds indirection without simplifying
+anything.</li>
+<li>Don’t let the facade grow business logic of its own; if it starts making decisions rather than coordinating calls,
+it’s no longer “just” a facade.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>Facade doesn’t add new capability — every subsystem method it calls is still directly reachable. It exists purely
+for convenience and lower coupling.</li>
+<li>Good follow-up: contrast with Adapter — Facade simplifies/coordinates several interfaces; Adapter translates one
+specific interface into another that a client expects.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/structural/adapter/">Adapter</a> — Adapter reconciles one mismatched interface; Facade simplifies access to several subsystem interfaces at once.</li>
+<li><a href="/lld-patterns-hub/solid/srp/">Single Responsibility Principle</a> — splitting a God class often produces the subsystem classes a Facade later coordinates.</li>
+<li><a href="/lld-patterns-hub/creational/singleton/">Singleton</a> — facades are frequently implemented as a single shared instance, since there’s usually no need for more than one.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/structural/decorator/"><div class="dir">← Previous</div><div>Decorator</div></a>
+<a href="/lld-patterns-hub/structural/composite/" class="to-next"><div class="dir">Next →</div><div>Composite</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

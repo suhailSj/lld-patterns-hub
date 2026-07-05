@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Template Method · LLD Patterns Hub</title>
+<meta name="description" content="Define the skeleton of an algorithm in a base class, and let subclasses override specific steps without changing the overall structure." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Template Method · LLD Patterns Hub" />
+<meta property="og:description" content="Define the skeleton of an algorithm in a base class, and let subclasses override specific steps without changing the overall structure." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/" aria-current="page">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Behavioral Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Behavioral Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a></li>
+<li><a href="/lld-patterns-hub/behavioral/observer/">Observer</a></li>
+<li><a href="/lld-patterns-hub/behavioral/command/">Command</a></li>
+<li><a href="/lld-patterns-hub/behavioral/state/">State</a></li>
+<li><a href="/lld-patterns-hub/behavioral/chain-of-responsibility/">Chain of Responsibility</a></li>
+<li><a href="/lld-patterns-hub/behavioral/template-method/" aria-current="page">Template Method</a></li>
+<li><a href="/lld-patterns-hub/behavioral/iterator/">Iterator</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/behavioral/">Behavioral Patterns</a> / Template Method</p>
+
+    <article class="prose">
+      <h1>Template Method</h1>
+      <div class="pattern-meta"><span class="tag">Behavioral</span><span class="tag">GoF</span><span class="tag">report generation</span></div>
+      <p class="summary-lede">Define the skeleton of an algorithm in a base class, and let subclasses override specific steps without changing the overall structure.</p>
+<h2>Problem statement</h2>
+<p>Generating a report always follows the same three steps — fetch data, format it, export it — but a PDF report and a
+CSV report format and export very differently. Duplicating the fetch step in both <code>PdfReport</code> and <code>CsvReport</code>
+classes means any future change to how data is fetched has to be made twice (and will eventually drift out of sync).</p>
+<h2>Core idea</h2>
+<p>Put the fixed skeleton (fetch → format → export, in that order) in a base class method that is <strong>not</strong> overridden.
+That method calls a small number of <code>abstract</code>/overridable “step” methods that subclasses <em>do</em> override. The overall
+sequence is guaranteed identical across every report type; only the individual steps vary.</p>
+<h2>Real-world analogy</h2>
+<p>A recipe template: “preheat, mix ingredients, bake, cool” is the fixed structure for baking anything. A chocolate
+cake recipe and a bread recipe both follow that structure, but “mix ingredients” means something completely
+different for each. The recipe card’s <em>structure</em> doesn’t change — only the details of each step.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>ReportGenerator (abstract)
+  + generate()  ◀── the template method: fixed sequence, never overridden
+       1. fetch_data()      (abstract — subclasses must implement)
+       2. format(data)      (abstract — subclasses must implement)
+       3. export(formatted) (abstract — subclasses must implement)
+             ▲
+   ┌─────────┴─────────┐
+PdfReportGenerator   CsvReportGenerator
+(each implements the 3 steps their own way)
+</code></pre>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Identify the fixed sequence shared by every variant (fetch → format → export).</li>
+<li>Put that sequence in one concrete method (<code>generate()</code>) on the base class — this is the “template method,” and it
+should not be overridden.</li>
+<li>Extract each varying step into its own <code>abstract</code> method.</li>
+<li>Each subclass implements only the steps that differ for it; the sequence itself is guaranteed by the base class.</li>
+</ol>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ReportGenerator</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;The template method: fixes the sequence, delegates the steps.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">generate</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:
+        data = <span class="hljs-variable language_">self</span>.fetch_data()
+        formatted = <span class="hljs-variable language_">self</span>.<span class="hljs-built_in">format</span>(data)
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.export(formatted)
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">fetch_data</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>]: ...
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">format</span>(<span class="hljs-params">self, data: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>]</span>) -&gt; <span class="hljs-built_in">str</span>: ...
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">export</span>(<span class="hljs-params">self, formatted: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SalesDataMixin</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Shared step reused by multiple report types — fetching never needs duplicating.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">fetch_data</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>]:
+        <span class="hljs-keyword">return</span> [{<span class="hljs-string">&quot;item&quot;</span>: <span class="hljs-string">&quot;Keyboard&quot;</span>, <span class="hljs-string">&quot;revenue&quot;</span>: <span class="hljs-number">890.0</span>}, {<span class="hljs-string">&quot;item&quot;</span>: <span class="hljs-string">&quot;Mouse&quot;</span>, <span class="hljs-string">&quot;revenue&quot;</span>: <span class="hljs-number">250.0</span>}]
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CsvReportGenerator</span>(SalesDataMixin, ReportGenerator):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">format</span>(<span class="hljs-params">self, data: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>]</span>) -&gt; <span class="hljs-built_in">str</span>:
+        rows = [<span class="hljs-string">f&quot;<span class="hljs-subst">{row[<span class="hljs-string">&#x27;item&#x27;</span>]}</span>,<span class="hljs-subst">{row[<span class="hljs-string">&#x27;revenue&#x27;</span>]}</span>&quot;</span> <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> data]
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;item,revenue\n&quot;</span> + <span class="hljs-string">&quot;\n&quot;</span>.join(rows)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">export</span>(<span class="hljs-params">self, formatted: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;report.csv written:\n<span class="hljs-subst">{formatted}</span>&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PdfReportGenerator</span>(SalesDataMixin, ReportGenerator):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">format</span>(<span class="hljs-params">self, data: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">dict</span>]</span>) -&gt; <span class="hljs-built_in">str</span>:
+        lines = [<span class="hljs-string">f&quot;<span class="hljs-subst">{row[<span class="hljs-string">&#x27;item&#x27;</span>]}</span>: $<span class="hljs-subst">{row[<span class="hljs-string">&#x27;revenue&#x27;</span>]:<span class="hljs-number">.2</span>f}</span>&quot;</span> <span class="hljs-keyword">for</span> row <span class="hljs-keyword">in</span> data]
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;\n&quot;</span>.join(lines)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">export</span>(<span class="hljs-params">self, formatted: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;report.pdf rendered with content:\n<span class="hljs-subst">{formatted}</span>&quot;</span>
+
+<span class="hljs-comment"># --- usage: same generate() sequence, different steps underneath ---</span>
+<span class="hljs-built_in">print</span>(CsvReportGenerator().generate())
+<span class="hljs-built_in">print</span>(PdfReportGenerator().generate())
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.List;
+<span class="hljs-keyword">import</span> java.util.Map;
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ReportGenerator</span> {
+    <span class="hljs-comment">// The template method: fixes the sequence, delegates the steps. Declared `final` so it can&#x27;t be overridden.</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> String <span class="hljs-title function_">generate</span><span class="hljs-params">()</span> {
+        List&lt;Map&lt;String, Object&gt;&gt; data = fetchData();
+        <span class="hljs-type">String</span> <span class="hljs-variable">formatted</span> <span class="hljs-operator">=</span> format(data);
+        <span class="hljs-keyword">return</span> export(formatted);
+    }
+
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> List&lt;Map&lt;String, Object&gt;&gt; <span class="hljs-title function_">fetchData</span><span class="hljs-params">()</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> String <span class="hljs-title function_">format</span><span class="hljs-params">(List&lt;Map&lt;String, Object&gt;&gt; data)</span>;
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> String <span class="hljs-title function_">export</span><span class="hljs-params">(String formatted)</span>;
+}
+
+<span class="hljs-comment">// Shared step reused by multiple report types — fetching never needs duplicating.</span>
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">SalesReportGenerator</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">ReportGenerator</span> {
+    <span class="hljs-keyword">protected</span> List&lt;Map&lt;String, Object&gt;&gt; <span class="hljs-title function_">fetchData</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">return</span> List.of(
+            Map.of(<span class="hljs-string">&quot;item&quot;</span>, <span class="hljs-string">&quot;Keyboard&quot;</span>, <span class="hljs-string">&quot;revenue&quot;</span>, <span class="hljs-number">890.0</span>),
+            Map.of(<span class="hljs-string">&quot;item&quot;</span>, <span class="hljs-string">&quot;Mouse&quot;</span>, <span class="hljs-string">&quot;revenue&quot;</span>, <span class="hljs-number">250.0</span>)
+        );
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CsvReportGenerator</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">SalesReportGenerator</span> {
+    <span class="hljs-keyword">protected</span> String <span class="hljs-title function_">format</span><span class="hljs-params">(List&lt;Map&lt;String, Object&gt;&gt; data)</span> {
+        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>(<span class="hljs-string">&quot;item,revenue\n&quot;</span>);
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> row : data) sb.append(row.get(<span class="hljs-string">&quot;item&quot;</span>)).append(<span class="hljs-string">&quot;,&quot;</span>).append(row.get(<span class="hljs-string">&quot;revenue&quot;</span>)).append(<span class="hljs-string">&quot;\n&quot;</span>);
+        <span class="hljs-keyword">return</span> sb.toString();
+    }
+    <span class="hljs-keyword">protected</span> String <span class="hljs-title function_">export</span><span class="hljs-params">(String formatted)</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;report.csv written:\n&quot;</span> + formatted;
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PdfReportGenerator</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">SalesReportGenerator</span> {
+    <span class="hljs-keyword">protected</span> String <span class="hljs-title function_">format</span><span class="hljs-params">(List&lt;Map&lt;String, Object&gt;&gt; data)</span> {
+        <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">sb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> row : data) sb.append(row.get(<span class="hljs-string">&quot;item&quot;</span>)).append(<span class="hljs-string">&quot;: $&quot;</span>).append(row.get(<span class="hljs-string">&quot;revenue&quot;</span>)).append(<span class="hljs-string">&quot;\n&quot;</span>);
+        <span class="hljs-keyword">return</span> sb.toString();
+    }
+    <span class="hljs-keyword">protected</span> String <span class="hljs-title function_">export</span><span class="hljs-params">(String formatted)</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;report.pdf rendered with content:\n&quot;</span> + formatted;
+    }
+}
+
+<span class="hljs-comment">// --- usage: same generate() sequence, different steps underneath ---</span>
+<span class="hljs-comment">// System.out.println(new CsvReportGenerator().generate());</span>
+<span class="hljs-comment">// System.out.println(new PdfReportGenerator().generate());</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Java’s <code>final</code> modifier on <code>generate()</code> <em>enforces</em> that subclasses cannot override the sequence
+itself — a compile error if attempted. Python has no equivalent enforcement (any method can be overridden), so the
+“don’t override this” rule is a documented convention rather than a compiler guarantee; some Python codebases signal
+intent with a leading underscore on the step methods or a docstring note instead.</p>
+<h2>How to identify when to use it</h2>
+<p>Two or more classes have near-identical method bodies except for one or two internal steps that differ. If you find
+yourself copy-pasting a method and changing three lines in the middle, that’s the signal to extract a template
+method.</p>
+<div class="callout pitfall">
+<div class="callout-title">🚫 Common misuse</div>
+<p>Don’t use Template Method when the <em>steps themselves</em> need to vary independently of one another and be recombined
+freely — that’s a sign you actually want composition (<a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a>
+objects passed in) rather than an inheritance-based template, since inheritance fixes the combination of steps at
+compile time.</p>
+</div>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Shared sequence lives in exactly one place — no duplicated/drifting boilerplate across variants</li>
+<li>Subclasses only implement what's actually different about them</li>
+<li>The base class enforces the algorithm's overall structure, so a subclass can't accidentally skip a step</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Relies on inheritance, which is more rigid than composition — see <a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a></li>
+<li>Can be harder to test steps in isolation compared to standalone Strategy objects</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Multiple classes implement the same overall algorithm with only a few steps genuinely differing between them.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>If the varying steps need to be swapped independently at runtime (not fixed per subclass), prefer Strategy objects
+passed into a single class over an inheritance hierarchy.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>Name the “Hollywood Principle” if it comes up: “don’t call us, we’ll call you” — the base class’s template method
+calls into the subclass’s steps, not the other way around.</li>
+<li>Be ready to discuss why Template Method uses inheritance while Strategy uses composition for a similar-sounding
+goal — it’s a common interview follow-up.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a> — the composition-based alternative when steps need to vary independently of a fixed class hierarchy.</li>
+<li><a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a> — Template Method is one of the few patterns that leans on inheritance deliberately; know when that tradeoff is worth it.</li>
+<li><a href="/lld-patterns-hub/solid/lsp/">Liskov Substitution Principle</a> — subclasses must honor the base template’s contract, or the whole pattern breaks.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/behavioral/chain-of-responsibility/"><div class="dir">← Previous</div><div>Chain of Responsibility</div></a>
+<a href="/lld-patterns-hub/behavioral/iterator/" class="to-next"><div class="dir">Next →</div><div>Iterator</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

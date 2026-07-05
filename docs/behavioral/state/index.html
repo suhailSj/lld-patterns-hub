@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>State · LLD Patterns Hub</title>
+<meta name="description" content="Let an object change its behavior entirely when its internal state changes, as if it had switched to a different class." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="State · LLD Patterns Hub" />
+<meta property="og:description" content="Let an object change its behavior entirely when its internal state changes, as if it had switched to a different class." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/" aria-current="page">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Behavioral Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Behavioral Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a></li>
+<li><a href="/lld-patterns-hub/behavioral/observer/">Observer</a></li>
+<li><a href="/lld-patterns-hub/behavioral/command/">Command</a></li>
+<li><a href="/lld-patterns-hub/behavioral/state/" aria-current="page">State</a></li>
+<li><a href="/lld-patterns-hub/behavioral/chain-of-responsibility/">Chain of Responsibility</a></li>
+<li><a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a></li>
+<li><a href="/lld-patterns-hub/behavioral/iterator/">Iterator</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/behavioral/">Behavioral Patterns</a> / State</p>
+
+    <article class="prose">
+      <h1>State</h1>
+      <div class="pattern-meta"><span class="tag">Behavioral</span><span class="tag">GoF</span><span class="tag">order processing</span></div>
+      <p class="summary-lede">Let an object change its behavior entirely when its internal state changes, as if it had switched to a different class.</p>
+<h2>Problem statement</h2>
+<p>An order moves through a lifecycle: <code>PLACED → PAID → SHIPPED → DELIVERED</code>, plus a <code>CANCELLED</code> state reachable from
+the first two. Which actions are legal (<code>pay()</code>, <code>ship()</code>, <code>cancel()</code>, <code>deliver()</code>) depends entirely on the current
+status, and a naive implementation ends up with a <code>status</code> string field and <code>if status == &quot;PAID&quot;: ... elif status == &quot;SHIPPED&quot;: ...</code> scattered across every method.</p>
+<h2>Core idea</h2>
+<p>Give each status its own class implementing a shared <code>OrderState</code> interface. Each state class knows exactly which
+transitions are legal from itself and returns the next state — the <code>Order</code> object just delegates to
+<code>self._state.pay()</code> and replaces its current state with whatever that call returns. Illegal transitions (e.g.
+shipping an unpaid order) are caught right where they’re defined, not scattered through conditionals.</p>
+<h2>Real-world analogy</h2>
+<p>A vending machine behaves completely differently depending on its current state: “no coin inserted” (only accepts
+coins), “coin inserted” (accepts a selection or coin return), “dispensing” (ignores new input until done). It’s the
+same machine, but which buttons “work” depends entirely on its current state — that’s exactly what the State pattern
+models.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>       «interface»
+       OrderState
+    + pay(order) -&gt; OrderState
+    + ship(order) -&gt; OrderState
+    + cancel(order) -&gt; OrderState
+              ▲
+   ┌──────────┼───────────┬─────────────┐
+PlacedState  PaidState  ShippedState  DeliveredState
+ (each returns the next legal state, or raises for illegal transitions)
+
+Order
+  - state: OrderState    ◀── delegates every action to the current state object
+  + pay() / ship() / cancel()
+</code></pre>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderState</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pay</span>(<span class="hljs-params">self, order: <span class="hljs-string">&quot;Order&quot;</span></span>) -&gt; <span class="hljs-string">&quot;OrderState&quot;</span>: ...
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">ship</span>(<span class="hljs-params">self, order: <span class="hljs-string">&quot;Order&quot;</span></span>) -&gt; <span class="hljs-string">&quot;OrderState&quot;</span>: ...
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self, order: <span class="hljs-string">&quot;Order&quot;</span></span>) -&gt; <span class="hljs-string">&quot;OrderState&quot;</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PlacedState</span>(<span class="hljs-title class_ inherited__">OrderState</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pay</span>(<span class="hljs-params">self, order</span>):
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Payment received&quot;</span>)
+        <span class="hljs-keyword">return</span> PaidState()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">ship</span>(<span class="hljs-params">self, order</span>):
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Cannot ship an unpaid order&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self, order</span>):
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Order cancelled before payment&quot;</span>)
+        <span class="hljs-keyword">return</span> CancelledState()
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PaidState</span>(<span class="hljs-title class_ inherited__">OrderState</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pay</span>(<span class="hljs-params">self, order</span>):
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Order is already paid&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">ship</span>(<span class="hljs-params">self, order</span>):
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Order shipped&quot;</span>)
+        <span class="hljs-keyword">return</span> ShippedState()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self, order</span>):
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Order cancelled after payment — refund issued&quot;</span>)
+        <span class="hljs-keyword">return</span> CancelledState()
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ShippedState</span>(<span class="hljs-title class_ inherited__">OrderState</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pay</span>(<span class="hljs-params">self, order</span>):
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Order is already paid and shipped&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">ship</span>(<span class="hljs-params">self, order</span>):
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Order is already shipped&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self, order</span>):
+        <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Cannot cancel a shipped order&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CancelledState</span>(<span class="hljs-title class_ inherited__">OrderState</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pay</span>(<span class="hljs-params">self, order</span>): <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Order is cancelled&quot;</span>)
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">ship</span>(<span class="hljs-params">self, order</span>): <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Order is cancelled&quot;</span>)
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self, order</span>): <span class="hljs-keyword">raise</span> RuntimeError(<span class="hljs-string">&quot;Order is already cancelled&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Order</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Delegates every action to its current state object — never branches on status itself.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, order_id: <span class="hljs-built_in">str</span></span>):
+        <span class="hljs-variable language_">self</span>.order_id = order_id
+        <span class="hljs-variable language_">self</span>._state: OrderState = PlacedState()
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pay</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._state = <span class="hljs-variable language_">self</span>._state.pay(<span class="hljs-variable language_">self</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">ship</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._state = <span class="hljs-variable language_">self</span>._state.ship(<span class="hljs-variable language_">self</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">cancel</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._state = <span class="hljs-variable language_">self</span>._state.cancel(<span class="hljs-variable language_">self</span>)
+
+<span class="hljs-comment"># --- usage ---</span>
+order = Order(<span class="hljs-string">&quot;ORD-1&quot;</span>)
+order.pay()    <span class="hljs-comment"># PlacedState -&gt; PaidState</span>
+order.ship()   <span class="hljs-comment"># PaidState -&gt; ShippedState</span>
+order.ship()   <span class="hljs-comment"># raises: &quot;Order is already shipped&quot;</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">OrderState</span> {
+    OrderState <span class="hljs-title function_">pay</span><span class="hljs-params">(Order order)</span>;
+    OrderState <span class="hljs-title function_">ship</span><span class="hljs-params">(Order order)</span>;
+    OrderState <span class="hljs-title function_">cancel</span><span class="hljs-params">(Order order)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PlacedState</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">OrderState</span> {
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">pay</span><span class="hljs-params">(Order order)</span> {
+        System.out.println(<span class="hljs-string">&quot;Payment received&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PaidState</span>();
+    }
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">ship</span><span class="hljs-params">(Order order)</span> {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;Cannot ship an unpaid order&quot;</span>);
+    }
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">cancel</span><span class="hljs-params">(Order order)</span> {
+        System.out.println(<span class="hljs-string">&quot;Order cancelled before payment&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CancelledState</span>();
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PaidState</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">OrderState</span> {
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">pay</span><span class="hljs-params">(Order order)</span> {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;Order is already paid&quot;</span>);
+    }
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">ship</span><span class="hljs-params">(Order order)</span> {
+        System.out.println(<span class="hljs-string">&quot;Order shipped&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ShippedState</span>();
+    }
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">cancel</span><span class="hljs-params">(Order order)</span> {
+        System.out.println(<span class="hljs-string">&quot;Order cancelled after payment — refund issued&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CancelledState</span>();
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ShippedState</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">OrderState</span> {
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">pay</span><span class="hljs-params">(Order order)</span> {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;Order is already paid and shipped&quot;</span>);
+    }
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">ship</span><span class="hljs-params">(Order order)</span> {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;Order is already shipped&quot;</span>);
+    }
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">cancel</span><span class="hljs-params">(Order order)</span> {
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;Cannot cancel a shipped order&quot;</span>);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CancelledState</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">OrderState</span> {
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">pay</span><span class="hljs-params">(Order order)</span> { <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;Order is cancelled&quot;</span>); }
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">ship</span><span class="hljs-params">(Order order)</span> { <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;Order is cancelled&quot;</span>); }
+    <span class="hljs-keyword">public</span> OrderState <span class="hljs-title function_">cancel</span><span class="hljs-params">(Order order)</span> { <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;Order is already cancelled&quot;</span>); }
+}
+
+<span class="hljs-comment">// Delegates every action to its current state object — never branches on status itself.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Order</span> {
+    <span class="hljs-keyword">final</span> String orderId;
+    <span class="hljs-keyword">private</span> <span class="hljs-type">OrderState</span> <span class="hljs-variable">state</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PlacedState</span>();
+
+    Order(String orderId) { <span class="hljs-built_in">this</span>.orderId = orderId; }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">pay</span><span class="hljs-params">()</span> { state = state.pay(<span class="hljs-built_in">this</span>); }
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">ship</span><span class="hljs-params">()</span> { state = state.ship(<span class="hljs-built_in">this</span>); }
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">cancel</span><span class="hljs-params">()</span> { state = state.cancel(<span class="hljs-built_in">this</span>); }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// Order order = new Order(&quot;ORD-1&quot;);</span>
+<span class="hljs-comment">// order.pay();    // PlacedState -&gt; PaidState</span>
+<span class="hljs-comment">// order.ship();   // PaidState -&gt; ShippedState</span>
+<span class="hljs-comment">// order.ship();   // throws: &quot;Order is already shipped&quot;</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> both languages express state transitions the same way: each state method returns the <em>next</em>
+state object. Java’s compiler ensures every <code>OrderState</code> implementer provides all three transition methods; Python’s
+<code>ABC</code> gives the equivalent guarantee at class-definition time (missing an abstract method raises at instantiation).</p>
+<h2>How to identify when to use it</h2>
+<p>Look for a <code>status</code>/<code>state</code> field checked repeatedly across many methods (<code>if status == &quot;X&quot;</code> appearing in <code>pay()</code>,
+<code>ship()</code>, <code>cancel()</code>, and more). If the set of legal operations genuinely changes based on that field, and the field
+transitions through a known set of values, State is very likely the right fit.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Eliminates scattered status-checking conditionals — each state owns its own legal transitions</li>
+<li>Illegal transitions are caught exactly where they're defined, with a clear error message</li>
+<li>New states are added as new classes without touching existing state logic</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>More classes than a single status field with conditionals, especially for simple lifecycles</li>
+<li>State objects need to be recreated or shared carefully if they hold any per-order data</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>An object has a small number of well-defined states, and behavior/allowed operations genuinely differ by state.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>A simple boolean flag (<code>is_active</code>) or a couple of straightforward conditionals is clearer than a full state
+machine for objects with only two trivial states.</li>
+</ul>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>State and Strategy look nearly identical in code. The tell interviewers listen for: in State, the state objects
+<em>transition to each other</em> (as seen above, each method returns the next state); in Strategy, the
+implementations are chosen once by the client and don’t know about each other. See the
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a> for the full side-by-side.</p>
+</div>
+<h2>Interview talking points</h2>
+<ul>
+<li>Draw the state diagram first (states as nodes, legal transitions as edges) — it maps directly onto the class
+design and shows you’re thinking about the full lifecycle, not just the happy path.</li>
+<li>Mention that illegal-transition handling (throwing vs. silently ignoring vs. returning a result type) is a design
+decision worth calling out explicitly.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a> — same structure, different intent; see the Cheat Sheet comparison.</li>
+<li><a href="/lld-patterns-hub/solid/ocp/">Open/Closed Principle</a> — adding a new state is purely additive, satisfying OCP.</li>
+<li><a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/">Cohesion and Coupling</a> — State increases cohesion by keeping each phase’s rules together instead of smeared across the whole class.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/behavioral/command/"><div class="dir">← Previous</div><div>Command</div></a>
+<a href="/lld-patterns-hub/behavioral/chain-of-responsibility/" class="to-next"><div class="dir">Next →</div><div>Chain of Responsibility</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

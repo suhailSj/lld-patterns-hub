@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Dependency Injection · LLD Patterns Hub</title>
+<meta name="description" content="Pass an object's dependencies in from outside instead of having it construct them itself — the standard technique for satisfying Dependency Inversion." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Dependency Injection · LLD Patterns Hub" />
+<meta property="og:description" content="Pass an object's dependencies in from outside instead of having it construct them itself — the standard technique for satisfying Dependency Inversion." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/" aria-current="page">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 LLD Fundamentals</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>LLD Fundamentals</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/oop-pillars/">Abstraction, Encapsulation & Polymorphism</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/dependency-injection/" aria-current="page">Dependency Injection</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/">Interfaces vs. Abstract Classes</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/immutability/">Immutability</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/">Cohesion and Coupling</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interview-tips/">Common LLD Interview Tips</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/fundamentals/">LLD Fundamentals</a> / Dependency Injection</p>
+
+    <article class="prose">
+      <h1>Dependency Injection</h1>
+      <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">testing</span><span class="tag">authentication</span></div>
+      <p class="summary-lede">Pass an object's dependencies in from outside instead of having it construct them itself — the standard technique for satisfying Dependency Inversion.</p>
+<h2>Intent / definition</h2>
+<p><strong>Dependency Injection (DI):</strong> rather than a class constructing the objects it depends on, those objects (“dependencies”)
+are handed to it from outside — typically through the constructor. DI is the most common technique for satisfying
+the <a href="/lld-patterns-hub/solid/dip/">Dependency Inversion Principle</a>: it’s the mechanism; DIP is the design rule
+it satisfies.</p>
+<h2>Problem statement</h2>
+<p>An <code>AuthService</code> needs a way to look up users. If it constructs its own <code>MySqlUserRepository</code> internally, every test
+of <code>AuthService</code> needs a real database connection, and switching databases means editing <code>AuthService</code> itself.</p>
+<h2>Why the naive approach fails</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 Construction hides a dependency</div>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">class</span> <span class="hljs-title class_">AuthService</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.repo = MySqlUserRepository()  <span class="hljs-comment"># hidden dependency, hard-coded</span>
+</code></pre>
+<p>Anyone reading <code>AuthService()</code>'s constructor call site has no idea it secretly needs a working MySQL connection until
+it fails at runtime. The dependency is real, but invisible from the outside.</p>
+</div>
+<h2>Solution overview</h2>
+<p>Pass the dependency in explicitly:</p>
+<pre class="hljs" data-language="python"><code><span class="hljs-keyword">class</span> <span class="hljs-title class_">AuthService</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, repo: UserRepository</span>):  <span class="hljs-comment"># dependency is visible right here</span>
+        <span class="hljs-variable language_">self</span>.repo = repo
+</code></pre>
+<p>Now the constructor signature documents exactly what <code>AuthService</code> needs, and any caller — production code, or a
+test — can supply whichever implementation is appropriate.</p>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Identify what a class constructs internally that it doesn’t strictly need to (databases, HTTP clients, other
+services).</li>
+<li>Change the constructor to accept that dependency as a parameter instead.</li>
+<li>Move construction of the concrete dependency to a “composition root” — the outermost layer of the app (a <code>main</code>
+function, a small <code>bootstrap()</code>, or a DI framework’s configuration) that wires everything together.</li>
+<li>Tests supply lightweight fakes/in-memory implementations instead of the real dependency.</li>
+</ol>
+<h2>Python example</h2>
+<pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">UserRepository</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">find_by_email</span>(<span class="hljs-params">self, email: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">dict</span> | <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">MySqlUserRepository</span>(<span class="hljs-title class_ inherited__">UserRepository</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">find_by_email</span>(<span class="hljs-params">self, email: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">dict</span> | <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;SELECT * FROM users WHERE email = &#x27;<span class="hljs-subst">{email}</span>&#x27;&quot;</span>)
+        <span class="hljs-keyword">return</span> {<span class="hljs-string">&quot;email&quot;</span>: email, <span class="hljs-string">&quot;password_hash&quot;</span>: <span class="hljs-string">&quot;hashed:secret&quot;</span>}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">InMemoryUserRepository</span>(<span class="hljs-title class_ inherited__">UserRepository</span>):
+    <span class="hljs-string">&quot;&quot;&quot;A fake used only in tests — no real database required.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, users: <span class="hljs-built_in">dict</span></span>):
+        <span class="hljs-variable language_">self</span>._users = users
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">find_by_email</span>(<span class="hljs-params">self, email: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">dict</span> | <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._users.get(email)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AuthService</span>:
+    <span class="hljs-string">&quot;&quot;&quot;The dependency is injected, not constructed internally — visible in the signature.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, repo: UserRepository</span>):
+        <span class="hljs-variable language_">self</span>._repo = repo
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">login</span>(<span class="hljs-params">self, email: <span class="hljs-built_in">str</span>, password_hash: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        user = <span class="hljs-variable language_">self</span>._repo.find_by_email(email)
+        <span class="hljs-keyword">return</span> user <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> user[<span class="hljs-string">&quot;password_hash&quot;</span>] == password_hash
+
+<span class="hljs-comment"># --- composition root: the one place that wires concrete implementations together ---</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">build_production_auth_service</span>() -&gt; AuthService:
+    <span class="hljs-keyword">return</span> AuthService(MySqlUserRepository())
+
+<span class="hljs-comment"># --- test code: no real database needed ---</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">test_login_succeeds_with_correct_password</span>():
+    service = AuthService(InMemoryUserRepository({
+        <span class="hljs-string">&quot;ada@example.com&quot;</span>: {<span class="hljs-string">&quot;email&quot;</span>: <span class="hljs-string">&quot;ada@example.com&quot;</span>, <span class="hljs-string">&quot;password_hash&quot;</span>: <span class="hljs-string">&quot;hashed:secret&quot;</span>}
+    }))
+    <span class="hljs-keyword">assert</span> service.login(<span class="hljs-string">&quot;ada@example.com&quot;</span>, <span class="hljs-string">&quot;hashed:secret&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.Map;
+<span class="hljs-keyword">import</span> java.util.Optional;
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">UserRepository</span> {
+    Optional&lt;Map&lt;String, String&gt;&gt; <span class="hljs-title function_">findByEmail</span><span class="hljs-params">(String email)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">MySqlUserRepository</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">UserRepository</span> {
+    <span class="hljs-keyword">public</span> Optional&lt;Map&lt;String, String&gt;&gt; <span class="hljs-title function_">findByEmail</span><span class="hljs-params">(String email)</span> {
+        System.out.println(<span class="hljs-string">&quot;SELECT * FROM users WHERE email = &#x27;&quot;</span> + email + <span class="hljs-string">&quot;&#x27;&quot;</span>);
+        <span class="hljs-keyword">return</span> Optional.of(Map.of(<span class="hljs-string">&quot;email&quot;</span>, email, <span class="hljs-string">&quot;passwordHash&quot;</span>, <span class="hljs-string">&quot;hashed:secret&quot;</span>));
+    }
+}
+
+<span class="hljs-comment">// A fake used only in tests — no real database required.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">InMemoryUserRepository</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">UserRepository</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, Map&lt;String, String&gt;&gt; users;
+    InMemoryUserRepository(Map&lt;String, Map&lt;String, String&gt;&gt; users) { <span class="hljs-built_in">this</span>.users = users; }
+
+    <span class="hljs-keyword">public</span> Optional&lt;Map&lt;String, String&gt;&gt; <span class="hljs-title function_">findByEmail</span><span class="hljs-params">(String email)</span> {
+        <span class="hljs-keyword">return</span> Optional.ofNullable(users.get(email));
+    }
+}
+
+<span class="hljs-comment">// The dependency is injected, not constructed internally — visible in the constructor signature.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AuthService</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> UserRepository repo;
+    AuthService(UserRepository repo) { <span class="hljs-built_in">this</span>.repo = repo; }
+
+    <span class="hljs-type">boolean</span> <span class="hljs-title function_">login</span><span class="hljs-params">(String email, String passwordHash)</span> {
+        <span class="hljs-keyword">return</span> repo.findByEmail(email)
+            .map(user -&gt; user.get(<span class="hljs-string">&quot;passwordHash&quot;</span>).equals(passwordHash))
+            .orElse(<span class="hljs-literal">false</span>);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CompositionRoot</span> {
+    <span class="hljs-comment">// The one place that wires concrete implementations together.</span>
+    <span class="hljs-keyword">static</span> AuthService <span class="hljs-title function_">buildProductionAuthService</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">AuthService</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">MySqlUserRepository</span>());
+    }
+}
+
+<span class="hljs-comment">// --- test code: no real database needed ---</span>
+<span class="hljs-comment">// AuthService service = new AuthService(new InMemoryUserRepository(</span>
+<span class="hljs-comment">//     Map.of(&quot;ada@example.com&quot;, Map.of(&quot;email&quot;, &quot;ada@example.com&quot;, &quot;passwordHash&quot;, &quot;hashed:secret&quot;))));</span>
+<span class="hljs-comment">// assert service.login(&quot;ada@example.com&quot;, &quot;hashed:secret&quot;);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> the technique (constructor injection) is identical in both languages. Java ecosystems often add a
+DI <em>framework</em> (Spring, Guice) that automates wiring via annotations (<code>@Autowired</code>, <code>@Inject</code>) — but the underlying
+idea is exactly the manual constructor injection shown above; frameworks just automate the composition root at scale.
+Python projects generally skip a DI framework entirely (plain constructor arguments, as shown, are usually enough)
+since the language’s flexibility makes manual wiring lightweight.</p>
+<h2>Real-world example</h2>
+<p>Test suites are the most visible real-world proof of DI’s value: any codebase that can substitute an in-memory
+database, a fake payment gateway, or a mock email sender for tests — without changing the class under test — is
+relying on dependency injection to make that substitution possible.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Makes dependencies visible in the constructor signature instead of hidden inside the class body</li>
+<li>Enables fast, isolated unit tests with fakes/in-memory implementations</li>
+<li>Decouples business logic from specific infrastructure choices</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Constructors with many injected dependencies can signal a class doing too much (a <a href="/lld-patterns-hub/solid/srp/">SRP</a> smell)</li>
+<li>DI frameworks add real learning curve and "magic" wiring that can be hard to trace in large codebases</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Any class that talks to infrastructure (databases, HTTP, file systems, third-party APIs) that you’ll want to fake
+or swap in tests or across environments.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>Trivial, stateless helper classes with no external dependencies don’t need to be “injected” anywhere — just
+instantiate them normally.</li>
+</ul>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>Be precise about the difference from <a href="/lld-patterns-hub/solid/dip/">DIP</a> if asked: DIP is the design
+<em>principle</em> (depend on abstractions); Dependency Injection is the <em>technique</em> most commonly used to
+satisfy it.</p>
+</div>
+<h2>Interview talking points</h2>
+<ul>
+<li>Explain “constructor injection” concretely with a before/after, exactly as shown above — interviewers want to see
+the hidden-dependency problem named, not just the term “DI.”</li>
+<li>Mention the “composition root” concept: DI doesn’t eliminate the need to construct concrete objects somewhere — it
+moves that responsibility to one well-known place instead of scattering it.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/solid/dip/">Dependency Inversion Principle</a> — the design rule DI satisfies.</li>
+<li><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a> / <a href="/lld-patterns-hub/creational/abstract-factory/">Abstract Factory</a> — often used inside the composition root to build the concrete dependencies being injected.</li>
+<li><a href="/lld-patterns-hub/creational/singleton/">Singleton</a> — DI is the usual, more testable alternative when you want “one shared instance” application-wide.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/fundamentals/oop-pillars/"><div class="dir">← Previous</div><div>Abstraction, Encapsulation & Polymorphism</div></a>
+<a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/" class="to-next"><div class="dir">Next →</div><div>Interfaces vs. Abstract Classes</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

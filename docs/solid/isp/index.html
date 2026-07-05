@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Interface Segregation Principle · LLD Patterns Hub</title>
+<meta name="description" content="No client should be forced to depend on methods it does not use — prefer several small, focused interfaces over one large one." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Interface Segregation Principle · LLD Patterns Hub" />
+<meta property="og:description" content="No client should be forced to depend on methods it does not use — prefer several small, focused interfaces over one large one." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/" aria-current="page">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 SOLID Principles</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>SOLID Principles</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/solid/srp/">Single Responsibility Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/ocp/">Open/Closed Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/lsp/">Liskov Substitution Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/isp/" aria-current="page">Interface Segregation Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/dip/">Dependency Inversion Principle</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/solid/">SOLID Principles</a> / Interface Segregation Principle</p>
+
+    <article class="prose">
+      <h1>Interface Segregation Principle</h1>
+      <div class="pattern-meta"><span class="tag">SOLID</span><span class="tag">interfaces</span><span class="tag">plugin systems</span></div>
+      <p class="summary-lede">No client should be forced to depend on methods it does not use — prefer several small, focused interfaces over one large one.</p>
+<h2>Intent / definition</h2>
+<p><strong>Interface Segregation Principle (ISP):</strong> clients should not be forced to depend on methods they don’t use. Instead
+of one large, general-purpose interface, prefer several small, role-specific ones — a class implements only the
+interfaces that match what it can actually do.</p>
+<h2>Problem statement</h2>
+<p>You’re building drivers for office printers. Some are high-end multi-function devices (print, scan, fax); others are
+simple, cheap printers that can only print.</p>
+<h2>Why the naive design fails</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 One fat interface forces fake implementations</div>
+<p>A single <code>MultiFunctionDevice</code> interface with <code>print()</code>, <code>scan()</code>, and <code>fax()</code> looks convenient — until
+<code>BasicPrinter</code>, which can only print, is forced to implement <code>scan()</code> and <code>fax()</code> too. Those methods end up throwing
+<code>NotImplementedError</code>/<code>UnsupportedOperationException</code>, or silently doing nothing. Either way, any code that receives
+a <code>MultiFunctionDevice</code> can no longer trust that calling <code>scan()</code> actually works — which is precisely the problem
+the <a href="/lld-patterns-hub/solid/lsp/">Liskov Substitution Principle</a> warns about. ISP is usually the fix.</p>
+</div>
+<p>This design:</p>
+<ul>
+<li>forces simple implementations to carry dead or exception-throwing code for capabilities they don’t have;</li>
+<li>couples unrelated capabilities together, so a change to the fax spec risks breaking the printer-only class’s build;</li>
+<li>makes the interface lie — “implements <code>MultiFunctionDevice</code>” no longer reliably means “can scan and fax.”</li>
+</ul>
+<h2>Solution overview</h2>
+<p>Split the fat interface into focused, single-capability ones: <code>Printer</code>, <code>Scanner</code>, <code>Fax</code>. <code>BasicPrinter</code> implements
+only <code>Printer</code>. <code>OfficeMultiFunctionDevice</code> implements all three (via composition or multiple interface
+implementation). Client code depends on the narrowest interface it actually needs — code that only prints accepts
+any <code>Printer</code>, whether or not it happens to also scan.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code> «interface»      «interface»     «interface»
+   Printer          Scanner          Fax
+ + print()        + scan()        + fax()
+      ▲                ▲               ▲
+      │                │               │
+ BasicPrinter    OfficeMultiFunctionDevice (implements all three)
+ (Printer only)
+</code></pre>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Look at a fat interface’s implementers for methods that throw, no-op, or return a “not supported” sentinel.</li>
+<li>Group methods by which implementers actually need them together — that grouping becomes a new, smaller interface.</li>
+<li>Split the fat interface into those smaller ones.</li>
+<li>Have each concrete class implement only the interfaces it can genuinely fulfill.</li>
+<li>Update client code signatures to accept the narrowest interface that satisfies the function’s needs.</li>
+</ol>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Printer</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">print_document</span>(<span class="hljs-params">self, content: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Scanner</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">scan</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Fax</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send_fax</span>(<span class="hljs-params">self, content: <span class="hljs-built_in">str</span>, number: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">BasicPrinter</span>(<span class="hljs-title class_ inherited__">Printer</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Only ever implements what it can actually do.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">print_document</span>(<span class="hljs-params">self, content: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Printing: <span class="hljs-subst">{content}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OfficeMultiFunctionDevice</span>(Printer, Scanner, Fax):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">print_document</span>(<span class="hljs-params">self, content: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Printing: <span class="hljs-subst">{content}</span>&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">scan</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;scanned-document-bytes&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send_fax</span>(<span class="hljs-params">self, content: <span class="hljs-built_in">str</span>, number: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Faxing to <span class="hljs-subst">{number}</span>: <span class="hljs-subst">{content}</span>&quot;</span>)
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">print_report</span>(<span class="hljs-params">printer: Printer, content: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+    <span class="hljs-comment"># Works with ANY Printer — a $50 desk printer or a $3000 multi-function device.</span>
+    printer.print_document(content)
+
+<span class="hljs-comment"># --- usage ---</span>
+print_report(BasicPrinter(), <span class="hljs-string">&quot;Q3 summary&quot;</span>)
+print_report(OfficeMultiFunctionDevice(), <span class="hljs-string">&quot;Q3 summary&quot;</span>)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">Printer</span> {
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">printDocument</span><span class="hljs-params">(String content)</span>;
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">Scanner</span> {
+    String <span class="hljs-title function_">scan</span><span class="hljs-params">()</span>;
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">Fax</span> {
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">sendFax</span><span class="hljs-params">(String content, String number)</span>;
+}
+
+<span class="hljs-comment">// Only ever implements what it can actually do.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">BasicPrinter</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Printer</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">printDocument</span><span class="hljs-params">(String content)</span> {
+        System.out.println(<span class="hljs-string">&quot;Printing: &quot;</span> + content);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OfficeMultiFunctionDevice</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Printer</span>, Scanner, Fax {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">printDocument</span><span class="hljs-params">(String content)</span> {
+        System.out.println(<span class="hljs-string">&quot;Printing: &quot;</span> + content);
+    }
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">scan</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;scanned-document-bytes&quot;</span>;
+    }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">sendFax</span><span class="hljs-params">(String content, String number)</span> {
+        System.out.println(<span class="hljs-string">&quot;Faxing to &quot;</span> + number + <span class="hljs-string">&quot;: &quot;</span> + content);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PrintTools</span> {
+    <span class="hljs-comment">// Works with ANY Printer — a $50 desk printer or a $3000 multi-function device.</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">printReport</span><span class="hljs-params">(Printer printer, String content)</span> {
+        printer.printDocument(content);
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// PrintTools.printReport(new BasicPrinter(), &quot;Q3 summary&quot;);</span>
+<span class="hljs-comment">// PrintTools.printReport(new OfficeMultiFunctionDevice(), &quot;Q3 summary&quot;);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Java’s <code>class X implements A, B, C</code> makes multiple-interface implementation explicit and
+compiler-checked. Python’s multiple inheritance (<code>class OfficeMultiFunctionDevice(Printer, Scanner, Fax)</code>) achieves
+the same thing structurally, though Python won’t stop you from skipping <code>ABC</code> altogether and relying on duck typing —
+the discipline of “small, focused roles” is what ISP actually asks for, independent of the mechanism.</p>
+<h2>Real-world example</h2>
+<p><code>java.util.List</code> deliberately implements several narrow interfaces (<code>Collection</code>, <code>Iterable</code>) rather than one giant
+“do everything” interface, so code that only needs to iterate can accept <code>Iterable&lt;T&gt;</code> without requiring the caller
+to hand over a full mutable <code>List</code>. Similarly, plugin systems (browser extensions, IDE plugins) typically expose many
+small extension points (<code>CommandProvider</code>, <code>SettingsPanel</code>, <code>StatusBarItem</code>) instead of one interface every plugin
+must fully implement.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Implementers only write code for capabilities they truly support</li>
+<li>Client code can depend on the exact capability it needs, improving testability (mock just <code>Printer</code>, not a whole device)</li>
+<li>Reduces the blast radius of interface changes — a `Fax` change can't ripple into `BasicPrinter`</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>More interfaces to define and keep track of</li>
+<li>Can fragment a genuinely cohesive capability if split too aggressively</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>An interface has grown multiple unrelated methods and not every implementer needs all of them.</li>
+<li>You see empty method bodies, “not supported” exceptions, or <code>TODO</code> stubs in implementers of a shared interface.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>Don’t split a genuinely cohesive interface (e.g. <code>Iterator</code> with <code>has_next()</code>/<code>next()</code>) just to have more, smaller
+interfaces — that fragments a single real responsibility instead of clarifying it.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>ISP and SRP are closely related but operate at different levels: SRP is about a <em>class’s</em> reasons to change; ISP
+is about an <em>interface’s</em> reasons to change for its various clients.</li>
+<li>A good tell in code review: any implementer with a method body that throws or is empty is a strong ISP violation
+signal.</li>
+<li>Mention the fix pattern: identify the natural capability groups among implementers, and let those groups become
+interfaces.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/solid/lsp/">Liskov Substitution Principle</a> — fat interfaces are one of the most common root causes of LSP violations; segregating them is often the direct fix.</li>
+<li><a href="/lld-patterns-hub/solid/dip/">Dependency Inversion Principle</a> — small, role-specific interfaces are exactly what high-level modules should depend on.</li>
+<li><a href="/lld-patterns-hub/structural/adapter/">Adapter</a> — sometimes used to bridge a fat legacy interface down to the small one a new client actually needs.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/solid/lsp/"><div class="dir">← Previous</div><div>Liskov Substitution Principle</div></a>
+<a href="/lld-patterns-hub/solid/dip/" class="to-next"><div class="dir">Next →</div><div>Dependency Inversion Principle</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

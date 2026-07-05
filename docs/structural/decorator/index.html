@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Decorator · LLD Patterns Hub</title>
+<meta name="description" content="Attach additional responsibilities to an object dynamically, without altering its interface or subclassing every combination." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Decorator · LLD Patterns Hub" />
+<meta property="og:description" content="Attach additional responsibilities to an object dynamically, without altering its interface or subclassing every combination." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/" aria-current="page">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Structural Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Structural Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/structural/adapter/">Adapter</a></li>
+<li><a href="/lld-patterns-hub/structural/decorator/" aria-current="page">Decorator</a></li>
+<li><a href="/lld-patterns-hub/structural/facade/">Facade</a></li>
+<li><a href="/lld-patterns-hub/structural/composite/">Composite</a></li>
+<li><a href="/lld-patterns-hub/structural/proxy/">Proxy</a></li>
+<li><a href="/lld-patterns-hub/structural/bridge/">Bridge</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/structural/">Structural Patterns</a> / Decorator</p>
+
+    <article class="prose">
+      <h1>Decorator</h1>
+      <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">notification systems</span></div>
+      <p class="summary-lede">Attach additional responsibilities to an object dynamically, without altering its interface or subclassing every combination.</p>
+<h2>Explanation in simple terms</h2>
+<p>A notification system needs to send messages, but different deployments want different combinations of extras:
+retry on failure, rate-limiting, and logging. Subclassing every combination (<code>RetryingEmailNotifier</code>,
+<code>LoggingRetryingEmailNotifier</code>, <code>RateLimitedLoggingRetryingEmailNotifier</code>…) explodes combinatorially. Decorator
+instead wraps a base notifier in layers, each adding one responsibility, stacked in whatever order you need.</p>
+<h2>Practical example</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 The subclass explosion this avoids</div>
+<p>With 1 base notifier and 3 optional extras, subclassing every combination requires up to 2³ = 8 classes. Add a
+fourth extra and it’s 16. Decorator needs exactly 1 class per extra (4 total), combined at runtime in any order.</p>
+</div>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>        «interface»
+         Notifier
+       + send(msg)
+             ▲
+   ┌─────────┼───────────────────┐
+EmailNotifier            NotifierDecorator (abstract, implements Notifier)
+(the real component)            ▲
+                     ┌───────────┼────────────┐
+              RetryDecorator  LoggingDecorator  RateLimitDecorator
+              (each wraps another Notifier and adds one responsibility)
+</code></pre>
+<h2>Python code</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Notifier</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EmailNotifier</span>(<span class="hljs-title class_ inherited__">Notifier</span>):
+    <span class="hljs-string">&quot;&quot;&quot;The real component being decorated.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[email] <span class="hljs-subst">{message}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">NotifierDecorator</span>(<span class="hljs-title class_ inherited__">Notifier</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Base decorator: holds the wrapped Notifier and forwards to it by default.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, wrapped: Notifier</span>):
+        <span class="hljs-variable language_">self</span>._wrapped = wrapped
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._wrapped.send(message)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LoggingDecorator</span>(<span class="hljs-title class_ inherited__">NotifierDecorator</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[log] about to send: <span class="hljs-subst">{message!r}</span>&quot;</span>)
+        <span class="hljs-built_in">super</span>().send(message)
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;[log] send complete&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">RetryDecorator</span>(<span class="hljs-title class_ inherited__">NotifierDecorator</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, wrapped: Notifier, max_attempts: <span class="hljs-built_in">int</span> = <span class="hljs-number">3</span></span>):
+        <span class="hljs-built_in">super</span>().__init__(wrapped)
+        <span class="hljs-variable language_">self</span>._max_attempts = max_attempts
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">for</span> attempt <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">1</span>, <span class="hljs-variable language_">self</span>._max_attempts + <span class="hljs-number">1</span>):
+            <span class="hljs-keyword">try</span>:
+                <span class="hljs-built_in">super</span>().send(message)
+                <span class="hljs-keyword">return</span>
+            <span class="hljs-keyword">except</span> ConnectionError:
+                <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[retry] attempt <span class="hljs-subst">{attempt}</span> failed&quot;</span>)
+        <span class="hljs-keyword">raise</span> ConnectionError(<span class="hljs-string">&quot;All retry attempts failed&quot;</span>)
+
+<span class="hljs-comment"># --- usage: stack decorators in whatever order the deployment needs ---</span>
+notifier: Notifier = LoggingDecorator(RetryDecorator(EmailNotifier()))
+notifier.send(<span class="hljs-string">&quot;Your order has shipped!&quot;</span>)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">Notifier</span> {
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String message)</span>;
+}
+
+<span class="hljs-comment">// The real component being decorated.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EmailNotifier</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Notifier</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String message)</span> {
+        System.out.println(<span class="hljs-string">&quot;[email] &quot;</span> + message);
+    }
+}
+
+<span class="hljs-comment">// Base decorator: holds the wrapped Notifier and forwards to it by default.</span>
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">NotifierDecorator</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Notifier</span> {
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> Notifier wrapped;
+    <span class="hljs-keyword">protected</span> <span class="hljs-title function_">NotifierDecorator</span><span class="hljs-params">(Notifier wrapped)</span> { <span class="hljs-built_in">this</span>.wrapped = wrapped; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String message)</span> { wrapped.send(message); }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">LoggingDecorator</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">NotifierDecorator</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">LoggingDecorator</span><span class="hljs-params">(Notifier wrapped)</span> { <span class="hljs-built_in">super</span>(wrapped); }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String message)</span> {
+        System.out.println(<span class="hljs-string">&quot;[log] about to send: &quot;</span> + message);
+        <span class="hljs-built_in">super</span>.send(message);
+        System.out.println(<span class="hljs-string">&quot;[log] send complete&quot;</span>);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">RetryDecorator</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">NotifierDecorator</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> maxAttempts;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">RetryDecorator</span><span class="hljs-params">(Notifier wrapped, <span class="hljs-type">int</span> maxAttempts)</span> {
+        <span class="hljs-built_in">super</span>(wrapped);
+        <span class="hljs-built_in">this</span>.maxAttempts = maxAttempts;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String message)</span> {
+        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">attempt</span> <span class="hljs-operator">=</span> <span class="hljs-number">1</span>; attempt &lt;= maxAttempts; attempt++) {
+            <span class="hljs-keyword">try</span> {
+                <span class="hljs-built_in">super</span>.send(message);
+                <span class="hljs-keyword">return</span>;
+            } <span class="hljs-keyword">catch</span> (RuntimeException e) {
+                System.out.println(<span class="hljs-string">&quot;[retry] attempt &quot;</span> + attempt + <span class="hljs-string">&quot; failed&quot;</span>);
+            }
+        }
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;All retry attempts failed&quot;</span>);
+    }
+}
+
+<span class="hljs-comment">// --- usage: stack decorators in whatever order the deployment needs ---</span>
+<span class="hljs-comment">// Notifier notifier = new LoggingDecorator(new RetryDecorator(new EmailNotifier(), 3));</span>
+<span class="hljs-comment">// notifier.send(&quot;Your order has shipped!&quot;);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Java’s <code>abstract class NotifierDecorator implements Notifier</code> with <code>super.send(message)</code> is the
+idiomatic base decorator. Python doesn’t need <code>ABC</code> here for <code>NotifierDecorator</code> strictly, but keeping the same
+<code>Notifier</code> interface makes the intent explicit; Python decorators-as-a-language-feature (the <code>@decorator</code> syntax) are
+a <em>different</em>, function-wrapping concept — don’t confuse the GoF Decorator pattern shown here with Python’s
+<code>@decorator</code> syntax, though they share a name and a similar spirit of “wrap and add behavior.”</p>
+<h2>Design reasoning</h2>
+<p>Every decorator implements the <em>same</em> interface as the thing it wraps (<code>Notifier</code>), which is what allows decorators
+to wrap each other in any order and any combination — the caller of <code>notifier.send(...)</code> can’t tell (and doesn’t
+need to know) how many layers are underneath.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Add/remove responsibilities at runtime by changing how objects are wrapped, not by editing classes</li>
+<li>Avoids combinatorial subclass explosion for optional behaviors</li>
+<li>Each decorator has a single, focused responsibility (ties to <a href="/lld-patterns-hub/solid/srp/">SRP</a>)</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Many small wrapper objects can make debugging/stepping through calls harder ("which layer failed?")</li>
+<li>Order of wrapping can matter and isn't always obvious from the call site (logging outside retry vs. inside retry behaves differently)</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>You need optional, combinable behaviors layered around a core object (logging, caching, retry, rate-limiting,
+compression, encryption).</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>If there’s only ever one fixed combination of extra behavior, a single class implementing all of it directly is
+simpler than a stack of decorators.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>Explicitly contrast with Proxy (see <a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>): Decorator <em>adds</em> new
+behavior; Proxy <em>controls access</em> to existing behavior and should behave identically to the real object from the
+caller’s perspective.</li>
+<li>Mention that decorators are meant to be stacked in any combination/order — that composability is the whole point,
+unlike a fixed inheritance chain.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/structural/proxy/">Proxy</a> — structurally almost identical, but with a different intent: controlling access rather than adding behavior.</li>
+<li><a href="/lld-patterns-hub/structural/adapter/">Adapter</a> — changes the interface; Decorator deliberately keeps it the same.</li>
+<li><a href="/lld-patterns-hub/structural/composite/">Composite</a> — both rely on recursive, uniform interfaces, but Composite models part-whole trees, not layered behavior.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/structural/adapter/"><div class="dir">← Previous</div><div>Adapter</div></a>
+<a href="/lld-patterns-hub/structural/facade/" class="to-next"><div class="dir">Next →</div><div>Facade</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

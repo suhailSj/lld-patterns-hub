@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Builder · LLD Patterns Hub</title>
+<meta name="description" content="Separate the construction of a complex object from its representation, so the same construction process can build different configurations." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Builder · LLD Patterns Hub" />
+<meta property="og:description" content="Separate the construction of a complex object from its representation, so the same construction process can build different configurations." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/" aria-current="page">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Creational Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Creational Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/creational/singleton/">Singleton</a></li>
+<li><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a></li>
+<li><a href="/lld-patterns-hub/creational/abstract-factory/">Abstract Factory</a></li>
+<li><a href="/lld-patterns-hub/creational/builder/" aria-current="page">Builder</a></li>
+<li><a href="/lld-patterns-hub/creational/prototype/">Prototype</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/creational/">Creational Patterns</a> / Builder</p>
+
+    <article class="prose">
+      <h1>Builder</h1>
+      <div class="pattern-meta"><span class="tag">Creational</span><span class="tag">GoF</span><span class="tag">HTTP requests</span></div>
+      <p class="summary-lede">Separate the construction of a complex object from its representation, so the same construction process can build different configurations.</p>
+<h2>What problem it solves</h2>
+<p>An <code>HttpRequest</code> object can have a method, URL, headers, query parameters, a body, a timeout, and retry settings —
+most of them optional. A single constructor covering every combination either needs a huge parameter list (most of
+it unused most of the time) or a dozen overloaded constructors. Builder lets you assemble the object step-by-step,
+setting only what you need, and produce an immutable result at the end.</p>
+<h2>When to use</h2>
+<ul>
+<li>An object has many optional fields/parameters and most callers only set a handful of them.</li>
+<li>Construction has a natural step-by-step feel, and you want the code that builds the object to read like a
+description of it (<code>request.method(&quot;POST&quot;).header(...).body(...)</code>).</li>
+<li>You want the constructed object to be immutable once built, but still flexible to assemble.</li>
+</ul>
+<h2>When not to use</h2>
+<ul>
+<li>If an object has only two or three fields, all required, a plain constructor is clearer than a builder.</li>
+<li>Don’t use Builder just to avoid named parameters in languages that already support them well (e.g. Python keyword
+arguments) unless the construction process itself has real, multi-step complexity or validation.</li>
+</ul>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>HttpRequest (immutable product)
+      ▲
+      │ constructed by
+HttpRequestBuilder
+  + method(m)      ─┐
+  + url(u)          │ each returns `self`/`this`, enabling chaining
+  + header(k, v)     │
+  + query_param(k,v) │
+  + body(b)          │
+  + timeout(seconds)─┘
+  + build() -&gt; HttpRequest    ◀── validates and produces the final, immutable object
+</code></pre>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Model the finished product (<code>HttpRequest</code>) as immutable — fields set once, never mutated after construction.</li>
+<li>Give the builder one method per configurable piece, each returning the builder itself so calls can chain.</li>
+<li>Track state on the builder (mutable) while the object under construction stays conceptually “not yet real.”</li>
+<li><code>build()</code> validates the accumulated state (e.g. “method and url are required”) and returns the finished, immutable
+product.</li>
+</ol>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass, field
+
+<span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">HttpRequest</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Immutable once built.&quot;&quot;&quot;</span>
+    method: <span class="hljs-built_in">str</span>
+    url: <span class="hljs-built_in">str</span>
+    headers: <span class="hljs-built_in">dict</span> = field(default_factory=<span class="hljs-built_in">dict</span>)
+    query_params: <span class="hljs-built_in">dict</span> = field(default_factory=<span class="hljs-built_in">dict</span>)
+    body: <span class="hljs-built_in">str</span> | <span class="hljs-literal">None</span> = <span class="hljs-literal">None</span>
+    timeout_seconds: <span class="hljs-built_in">int</span> = <span class="hljs-number">30</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">HttpRequestBuilder</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>._method = <span class="hljs-string">&quot;GET&quot;</span>
+        <span class="hljs-variable language_">self</span>._url = <span class="hljs-literal">None</span>
+        <span class="hljs-variable language_">self</span>._headers: <span class="hljs-built_in">dict</span> = {}
+        <span class="hljs-variable language_">self</span>._query_params: <span class="hljs-built_in">dict</span> = {}
+        <span class="hljs-variable language_">self</span>._body = <span class="hljs-literal">None</span>
+        <span class="hljs-variable language_">self</span>._timeout_seconds = <span class="hljs-number">30</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">method</span>(<span class="hljs-params">self, method: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-string">&quot;HttpRequestBuilder&quot;</span>:
+        <span class="hljs-variable language_">self</span>._method = method
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">url</span>(<span class="hljs-params">self, url: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-string">&quot;HttpRequestBuilder&quot;</span>:
+        <span class="hljs-variable language_">self</span>._url = url
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">header</span>(<span class="hljs-params">self, key: <span class="hljs-built_in">str</span>, value: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-string">&quot;HttpRequestBuilder&quot;</span>:
+        <span class="hljs-variable language_">self</span>._headers[key] = value
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">query_param</span>(<span class="hljs-params">self, key: <span class="hljs-built_in">str</span>, value: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-string">&quot;HttpRequestBuilder&quot;</span>:
+        <span class="hljs-variable language_">self</span>._query_params[key] = value
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">body</span>(<span class="hljs-params">self, body: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-string">&quot;HttpRequestBuilder&quot;</span>:
+        <span class="hljs-variable language_">self</span>._body = body
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">timeout</span>(<span class="hljs-params">self, seconds: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-string">&quot;HttpRequestBuilder&quot;</span>:
+        <span class="hljs-variable language_">self</span>._timeout_seconds = seconds
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">build</span>(<span class="hljs-params">self</span>) -&gt; HttpRequest:
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> <span class="hljs-variable language_">self</span>._url:
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;url is required&quot;</span>)
+        <span class="hljs-keyword">return</span> HttpRequest(
+            method=<span class="hljs-variable language_">self</span>._method,
+            url=<span class="hljs-variable language_">self</span>._url,
+            headers=<span class="hljs-built_in">dict</span>(<span class="hljs-variable language_">self</span>._headers),
+            query_params=<span class="hljs-built_in">dict</span>(<span class="hljs-variable language_">self</span>._query_params),
+            body=<span class="hljs-variable language_">self</span>._body,
+            timeout_seconds=<span class="hljs-variable language_">self</span>._timeout_seconds,
+        )
+
+<span class="hljs-comment"># --- usage ---</span>
+request = (
+    HttpRequestBuilder()
+    .method(<span class="hljs-string">&quot;POST&quot;</span>)
+    .url(<span class="hljs-string">&quot;https://api.example.com/orders&quot;</span>)
+    .header(<span class="hljs-string">&quot;Authorization&quot;</span>, <span class="hljs-string">&quot;Bearer token123&quot;</span>)
+    .query_param(<span class="hljs-string">&quot;dry_run&quot;</span>, <span class="hljs-string">&quot;true&quot;</span>)
+    .body(<span class="hljs-string">&#x27;{&quot;item&quot;: &quot;keyboard&quot;}&#x27;</span>)
+    .timeout(<span class="hljs-number">10</span>)
+    .build()
+)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.HashMap;
+<span class="hljs-keyword">import</span> java.util.Map;
+<span class="hljs-keyword">import</span> java.util.Collections;
+
+<span class="hljs-comment">// Immutable once built.</span>
+<span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">HttpRequest</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String method;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String url;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, String&gt; headers;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, String&gt; queryParams;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String body;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> timeoutSeconds;
+
+    HttpRequest(String method, String url, Map&lt;String, String&gt; headers,
+                Map&lt;String, String&gt; queryParams, String body, <span class="hljs-type">int</span> timeoutSeconds) {
+        <span class="hljs-built_in">this</span>.method = method;
+        <span class="hljs-built_in">this</span>.url = url;
+        <span class="hljs-built_in">this</span>.headers = Collections.unmodifiableMap(<span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;(headers));
+        <span class="hljs-built_in">this</span>.queryParams = Collections.unmodifiableMap(<span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;(queryParams));
+        <span class="hljs-built_in">this</span>.body = body;
+        <span class="hljs-built_in">this</span>.timeoutSeconds = timeoutSeconds;
+    }
+
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getMethod</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> method; }
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getUrl</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> url; }
+    <span class="hljs-keyword">public</span> Map&lt;String, String&gt; <span class="hljs-title function_">getHeaders</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> headers; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">HttpRequestBuilder</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-type">String</span> <span class="hljs-variable">method</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;GET&quot;</span>;
+    <span class="hljs-keyword">private</span> String url;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, String&gt; headers = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, String&gt; queryParams = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();
+    <span class="hljs-keyword">private</span> String body;
+    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> <span class="hljs-variable">timeoutSeconds</span> <span class="hljs-operator">=</span> <span class="hljs-number">30</span>;
+
+    <span class="hljs-keyword">public</span> HttpRequestBuilder <span class="hljs-title function_">method</span><span class="hljs-params">(String method)</span> { <span class="hljs-built_in">this</span>.method = method; <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>; }
+    <span class="hljs-keyword">public</span> HttpRequestBuilder <span class="hljs-title function_">url</span><span class="hljs-params">(String url)</span> { <span class="hljs-built_in">this</span>.url = url; <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>; }
+    <span class="hljs-keyword">public</span> HttpRequestBuilder <span class="hljs-title function_">header</span><span class="hljs-params">(String key, String value)</span> { headers.put(key, value); <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>; }
+    <span class="hljs-keyword">public</span> HttpRequestBuilder <span class="hljs-title function_">queryParam</span><span class="hljs-params">(String key, String value)</span> { queryParams.put(key, value); <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>; }
+    <span class="hljs-keyword">public</span> HttpRequestBuilder <span class="hljs-title function_">body</span><span class="hljs-params">(String body)</span> { <span class="hljs-built_in">this</span>.body = body; <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>; }
+    <span class="hljs-keyword">public</span> HttpRequestBuilder <span class="hljs-title function_">timeout</span><span class="hljs-params">(<span class="hljs-type">int</span> seconds)</span> { <span class="hljs-built_in">this</span>.timeoutSeconds = seconds; <span class="hljs-keyword">return</span> <span class="hljs-built_in">this</span>; }
+
+    <span class="hljs-keyword">public</span> HttpRequest <span class="hljs-title function_">build</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">if</span> (url == <span class="hljs-literal">null</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>(<span class="hljs-string">&quot;url is required&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HttpRequest</span>(method, url, headers, queryParams, body, timeoutSeconds);
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// HttpRequest request = new HttpRequestBuilder()</span>
+<span class="hljs-comment">//     .method(&quot;POST&quot;)</span>
+<span class="hljs-comment">//     .url(&quot;https://api.example.com/orders&quot;)</span>
+<span class="hljs-comment">//     .header(&quot;Authorization&quot;, &quot;Bearer token123&quot;)</span>
+<span class="hljs-comment">//     .queryParam(&quot;dry_run&quot;, &quot;true&quot;)</span>
+<span class="hljs-comment">//     .body(&quot;{\&quot;item\&quot;: \&quot;keyboard\&quot;}&quot;)</span>
+<span class="hljs-comment">//     .timeout(10)</span>
+<span class="hljs-comment">//     .build();</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Python’s keyword arguments and <code>dataclass</code> defaults cover many “optional parameter” cases without
+a builder at all — Python engineers reach for Builder mainly when construction needs validation or a fluent,
+step-by-step feel, not just to avoid long argument lists. Java, lacking named/default parameters, uses Builder far
+more often for exactly that reason; Lombok’s <code>@Builder</code> annotation generates the boilerplate shown above
+automatically in real Java codebases.</p>
+<h2>Real-world example</h2>
+<p>Java’s <code>StringBuilder</code> and <code>okhttp3.Request.Builder</code> are Builder in the standard library and in one of the most
+widely used HTTP client libraries, respectively. In Python, libraries like <code>sqlalchemy</code>’s query builder
+(<code>select(...).where(...).order_by(...)</code>) apply the same fluent, step-by-step assembly idea.</p>
+<h2>Advantages and tradeoffs</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Advantages</h4>
+<ul>
+<li>Readable, self-documenting construction — the chain of calls describes the object being built</li>
+<li>Keeps the final product immutable while allowing flexible, incremental assembly</li>
+<li>Centralizes validation in one place (<code>build()</code>) instead of scattering it across constructors</li>
+</ul>
+</div>
+<div>
+<h4>❌ Tradeoffs</h4>
+<ul>
+<li>Doubles the number of classes (one for the product, one for the builder)</li>
+<li>Overkill for simple objects with few, mostly-required fields</li>
+</ul>
+</div>
+</div>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>If asked to design an object with many optional configuration fields, proposing Builder — and explicitly mentioning
+that <code>build()</code> is where you validate required fields — is usually exactly what the interviewer is
+listening for.</p>
+</div>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/creational/abstract-factory/">Abstract Factory</a> — Abstract Factory creates families of simple objects; Builder constructs one complex object step by step. They’re sometimes combined (a factory that returns a pre-configured builder).</li>
+<li><a href="/lld-patterns-hub/fundamentals/immutability/">Immutability</a> — Builder is one of the most common ways to produce immutable objects without an unwieldy constructor.</li>
+<li><a href="/lld-patterns-hub/creational/prototype/">Prototype</a> — an alternative way to get a fully-configured object cheaply: clone an existing one instead of building from scratch.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/creational/abstract-factory/"><div class="dir">← Previous</div><div>Abstract Factory</div></a>
+<a href="/lld-patterns-hub/creational/prototype/" class="to-next"><div class="dir">Next →</div><div>Prototype</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Dependency Inversion Principle · LLD Patterns Hub</title>
+<meta name="description" content="High-level modules should not depend on low-level modules; both should depend on abstractions." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Dependency Inversion Principle · LLD Patterns Hub" />
+<meta property="og:description" content="High-level modules should not depend on low-level modules; both should depend on abstractions." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/" aria-current="page">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 SOLID Principles</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>SOLID Principles</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/solid/srp/">Single Responsibility Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/ocp/">Open/Closed Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/lsp/">Liskov Substitution Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/isp/">Interface Segregation Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/dip/" aria-current="page">Dependency Inversion Principle</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/solid/">SOLID Principles</a> / Dependency Inversion Principle</p>
+
+    <article class="prose">
+      <h1>Dependency Inversion Principle</h1>
+      <div class="pattern-meta"><span class="tag">SOLID</span><span class="tag">authentication</span><span class="tag">dependency injection</span></div>
+      <p class="summary-lede">High-level modules should not depend on low-level modules; both should depend on abstractions.</p>
+<h2>Intent / definition</h2>
+<p><strong>Dependency Inversion Principle (DIP):</strong> high-level modules (business logic) should not depend on low-level modules
+(databases, HTTP clients, frameworks) directly — both should depend on <strong>abstractions</strong>. And abstractions should not
+depend on details; details should depend on abstractions. In practice: define the interface from the high-level
+module’s point of view, and have the low-level module implement it.</p>
+<h2>Problem statement</h2>
+<p>An <code>AuthService</code> needs to look up users during login. The obvious first cut has <code>AuthService</code> import and instantiate
+a <code>MySqlUserRepository</code> directly.</p>
+<h2>Why the naive design fails</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 Business logic welded to infrastructure</div>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">class</span> <span class="hljs-title class_">AuthService</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.repo = MySqlUserRepository()  <span class="hljs-comment"># hard-coded, concrete dependency</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">login</span>(<span class="hljs-params">self, email, password</span>):
+        user = <span class="hljs-variable language_">self</span>.repo.find_by_email(email)
+        ...
+</code></pre>
+<p><code>AuthService</code> — the important, high-value business logic — now depends directly on a MySQL-specific class. Every
+test of login logic needs a real (or heavily mocked) MySQL connection. Switching to DynamoDB, or adding a read-through
+cache, means editing <code>AuthService</code> itself, even though the login <em>logic</em> never actually changed.</p>
+</div>
+<p>This design:</p>
+<ul>
+<li>makes unit testing <code>AuthService</code> require spinning up (or intricately faking) a real database;</li>
+<li>couples a business rule (“how login works”) to an infrastructure choice (“we use MySQL”), so the two can’t evolve
+independently;</li>
+<li>inverts the natural ownership: infrastructure code ends up dictating the shape of business logic, instead of the
+other way around.</li>
+</ul>
+<h2>Solution overview</h2>
+<p>Define a <code>UserRepository</code> <strong>interface</strong> owned by the auth/business layer, expressing exactly what login needs:
+<code>find_by_email(email)</code>. <code>AuthService</code> depends only on this interface. <code>MySqlUserRepository</code> (and, later,
+<code>DynamoUserRepository</code>, or <code>InMemoryUserRepository</code> for tests) implement it. The dependency arrow is now inverted:
+the low-level MySQL class depends on (implements) an interface defined by the high-level module, not the reverse.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>   AuthService (high-level)
+        │ depends on
+        ▼
+ «interface» UserRepository       ◀── owned by the business layer
+   + find_by_email(email)
+        ▲
+        │ implemented by
+ MySqlUserRepository (low-level) / InMemoryUserRepository (for tests)
+</code></pre>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Find the concrete, low-level class a high-level class instantiates directly (<code>MySqlUserRepository()</code> above).</li>
+<li>Define an interface expressing only what the high-level class needs from it.</li>
+<li>Make the low-level class implement that interface instead of the high-level class importing it directly.</li>
+<li>Have something <em>outside</em> both classes (a constructor, a DI container, a <code>main</code>/composition root) wire the concrete
+implementation into the high-level class. See <a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a> for the mechanics.</li>
+</ol>
+<h2>Python example</h2>
+<pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+<span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span>:
+    email: <span class="hljs-built_in">str</span>
+    password_hash: <span class="hljs-built_in">str</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">UserRepository</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Owned by the business layer — expresses exactly what AuthService needs.&quot;&quot;&quot;</span>
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">find_by_email</span>(<span class="hljs-params">self, email: <span class="hljs-built_in">str</span></span>) -&gt; User | <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">MySqlUserRepository</span>(<span class="hljs-title class_ inherited__">UserRepository</span>):
+    <span class="hljs-string">&quot;&quot;&quot;A low-level detail. Depends on (implements) the abstraction above.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">find_by_email</span>(<span class="hljs-params">self, email: <span class="hljs-built_in">str</span></span>) -&gt; User | <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;SELECT * FROM users WHERE email = &#x27;<span class="hljs-subst">{email}</span>&#x27;&quot;</span>)
+        <span class="hljs-keyword">return</span> User(email=email, password_hash=<span class="hljs-string">&quot;hashed:secret&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">InMemoryUserRepository</span>(<span class="hljs-title class_ inherited__">UserRepository</span>):
+    <span class="hljs-string">&quot;&quot;&quot;A test double — trivial because AuthService never knew about MySQL.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, users: <span class="hljs-built_in">dict</span>[<span class="hljs-built_in">str</span>, User]</span>):
+        <span class="hljs-variable language_">self</span>._users = users
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">find_by_email</span>(<span class="hljs-params">self, email: <span class="hljs-built_in">str</span></span>) -&gt; User | <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._users.get(email)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AuthService</span>:
+    <span class="hljs-string">&quot;&quot;&quot;High-level module: depends only on the UserRepository abstraction.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, repo: UserRepository</span>):
+        <span class="hljs-variable language_">self</span>._repo = repo
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">login</span>(<span class="hljs-params">self, email: <span class="hljs-built_in">str</span>, password_hash: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        user = <span class="hljs-variable language_">self</span>._repo.find_by_email(email)
+        <span class="hljs-keyword">return</span> user <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span> <span class="hljs-keyword">and</span> user.password_hash == password_hash
+
+<span class="hljs-comment"># --- usage ---</span>
+prod_service = AuthService(MySqlUserRepository())
+
+test_service = AuthService(InMemoryUserRepository({
+    <span class="hljs-string">&quot;ada@example.com&quot;</span>: User(<span class="hljs-string">&quot;ada@example.com&quot;</span>, <span class="hljs-string">&quot;hashed:secret&quot;</span>)
+}))
+<span class="hljs-keyword">assert</span> test_service.login(<span class="hljs-string">&quot;ada@example.com&quot;</span>, <span class="hljs-string">&quot;hashed:secret&quot;</span>) <span class="hljs-keyword">is</span> <span class="hljs-literal">True</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.Map;
+<span class="hljs-keyword">import</span> java.util.Optional;
+
+<span class="hljs-keyword">record</span> <span class="hljs-title class_">User</span><span class="hljs-params">(String email, String passwordHash)</span> {}
+
+<span class="hljs-comment">// Owned by the business layer — expresses exactly what AuthService needs.</span>
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">UserRepository</span> {
+    Optional&lt;User&gt; <span class="hljs-title function_">findByEmail</span><span class="hljs-params">(String email)</span>;
+}
+
+<span class="hljs-comment">// A low-level detail. Depends on (implements) the abstraction above.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">MySqlUserRepository</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">UserRepository</span> {
+    <span class="hljs-keyword">public</span> Optional&lt;User&gt; <span class="hljs-title function_">findByEmail</span><span class="hljs-params">(String email)</span> {
+        System.out.println(<span class="hljs-string">&quot;SELECT * FROM users WHERE email = &#x27;&quot;</span> + email + <span class="hljs-string">&quot;&#x27;&quot;</span>);
+        <span class="hljs-keyword">return</span> Optional.of(<span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>(email, <span class="hljs-string">&quot;hashed:secret&quot;</span>));
+    }
+}
+
+<span class="hljs-comment">// A test double — trivial because AuthService never knew about MySQL.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">InMemoryUserRepository</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">UserRepository</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, User&gt; users;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">InMemoryUserRepository</span><span class="hljs-params">(Map&lt;String, User&gt; users)</span> { <span class="hljs-built_in">this</span>.users = users; }
+
+    <span class="hljs-keyword">public</span> Optional&lt;User&gt; <span class="hljs-title function_">findByEmail</span><span class="hljs-params">(String email)</span> {
+        <span class="hljs-keyword">return</span> Optional.ofNullable(users.get(email));
+    }
+}
+
+<span class="hljs-comment">// High-level module: depends only on the UserRepository abstraction.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AuthService</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> UserRepository repo;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">AuthService</span><span class="hljs-params">(UserRepository repo)</span> { <span class="hljs-built_in">this</span>.repo = repo; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">login</span><span class="hljs-params">(String email, String passwordHash)</span> {
+        <span class="hljs-keyword">return</span> repo.findByEmail(email)
+            .map(user -&gt; user.passwordHash().equals(passwordHash))
+            .orElse(<span class="hljs-literal">false</span>);
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// AuthService prodService = new AuthService(new MySqlUserRepository());</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// AuthService testService = new AuthService(</span>
+<span class="hljs-comment">//     new InMemoryUserRepository(Map.of(&quot;ada@example.com&quot;, new User(&quot;ada@example.com&quot;, &quot;hashed:secret&quot;))));</span>
+<span class="hljs-comment">// assert testService.login(&quot;ada@example.com&quot;, &quot;hashed:secret&quot;);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> the shape is identical in both languages because DIP is a dependency-direction discipline, not a
+language feature. Java’s constructor-injection style shown here is the most common; Python projects often achieve
+the same thing with plain constructor arguments (as above) or a lightweight DI library — neither language requires a
+heavyweight framework to apply DIP.</p>
+<h2>Real-world example</h2>
+<p>Almost every popular web framework’s ORM layer is built this way: your service code depends on a repository
+interface or query builder abstraction, and the actual SQL dialect (PostgreSQL, MySQL, SQLite) is swapped via
+configuration, not code changes. This is also exactly how test suites replace real databases with in-memory fakes
+without touching business logic.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Business logic becomes unit-testable without real infrastructure</li>
+<li>Infrastructure (database, HTTP client, message queue) can be swapped without touching business rules</li>
+<li>Encourages defining interfaces from the consumer's point of view, which tends to keep them small (ties to ISP)</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Adds an interface and a wiring step for what might have been a one-line direct call</li>
+<li>Requires a "composition root" somewhere (constructor calls, a DI container, a <code>main</code> function) that assembles concrete implementations — that wiring code has to live somewhere</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>A class directly imports/instantiates a concrete infrastructure class (database driver, HTTP client, file system).</li>
+<li>You want to unit test business logic without spinning up real external systems.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>For a genuinely single-implementation, unlikely-to-change utility (e.g. a math helper), introducing an interface
+purely for DIP’s sake adds ceremony without a real benefit.</li>
+</ul>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>DIP is often confused with Dependency Injection — DIP is the <em>design principle</em> (depend on abstractions);
+Dependency Injection is one common <em>technique</em> for satisfying it (passing the concrete implementation in from
+outside, rather than the class constructing it itself).</p>
+</div>
+<h2>Interview talking points</h2>
+<ul>
+<li>State the inversion clearly: it’s not just “use interfaces,” it’s that the <em>interface is owned by the high-level
+module</em>, and the low-level module conforms to it — not the other way around.</li>
+<li>Name the direct benefit interviewers listen for: testability without real infrastructure.</li>
+<li>Be ready to distinguish DIP from Dependency Injection when asked — see <a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a>.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a> — the standard technique for satisfying DIP in practice.</li>
+<li><a href="/lld-patterns-hub/solid/isp/">Interface Segregation Principle</a> — abstractions defined for DIP should stay small and client-specific, which is what ISP asks for.</li>
+<li><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a> / <a href="/lld-patterns-hub/creational/abstract-factory/">Abstract Factory</a> — useful for constructing the concrete low-level implementations that get injected at the composition root.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/solid/isp/"><div class="dir">← Previous</div><div>Interface Segregation Principle</div></a>
+<span></span>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

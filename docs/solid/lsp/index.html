@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Liskov Substitution Principle · LLD Patterns Hub</title>
+<meta name="description" content="Subtypes must be substitutable for their base type without breaking the correctness of the program." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Liskov Substitution Principle · LLD Patterns Hub" />
+<meta property="og:description" content="Subtypes must be substitutable for their base type without breaking the correctness of the program." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/" aria-current="page">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 SOLID Principles</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>SOLID Principles</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/solid/srp/">Single Responsibility Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/ocp/">Open/Closed Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/lsp/" aria-current="page">Liskov Substitution Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/isp/">Interface Segregation Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/dip/">Dependency Inversion Principle</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/solid/">SOLID Principles</a> / Liskov Substitution Principle</p>
+
+    <article class="prose">
+      <h1>Liskov Substitution Principle</h1>
+      <div class="pattern-meta"><span class="tag">SOLID</span><span class="tag">inheritance</span><span class="tag">document editor</span></div>
+      <p class="summary-lede">Subtypes must be substitutable for their base type without breaking the correctness of the program.</p>
+<h2>Intent / definition</h2>
+<p><strong>Liskov Substitution Principle (LSP):</strong> if <code>S</code> is a subtype of <code>T</code>, objects of type <code>T</code> should be replaceable with
+objects of type <code>S</code> <strong>without altering the correctness of the program</strong>. In plain terms: a subclass must honor every
+promise (precondition, postcondition, invariant) that callers rely on from the base class — it can do <em>more</em>, but
+never <em>less</em> or <em>differently in a breaking way</em>.</p>
+<h2>Problem statement</h2>
+<p>A document editor has a <code>Document</code> base type with <code>open()</code>, <code>edit(text)</code>, and <code>save()</code>. Most documents are regular
+files. But the app also needs to represent <strong>read-only documents</strong> — say, documents shared with “view only”
+permission, or documents opened from a signed PDF.</p>
+<h2>Why the naive design fails</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 A subtype that breaks its parent's contract</div>
+<p>The easy path is <code>class ReadOnlyDocument(Document)</code> that overrides <code>edit()</code> to raise an exception (“cannot edit a
+read-only document”). This compiles and looks reasonable — until some code does:</p>
+<pre class="hljs" data-language="plaintext"><code>for doc in documents:
+    doc.edit(new_text)
+    doc.save()
+</code></pre>
+<p>This loop worked for every <code>Document</code> until a <code>ReadOnlyDocument</code> entered the list, at which point it crashes. The
+caller did nothing wrong — it was told it had a <code>Document</code>, and every <code>Document</code> was supposed to support <code>edit()</code>.
+The subtype silently broke a promise the base type made.</p>
+</div>
+<p>This design:</p>
+<ul>
+<li>forces every caller of <code>Document</code> to know about — and defensively check for — the read-only special case, which
+defeats the purpose of polymorphism;</li>
+<li>turns compile-time-looking safety (it implements the interface!) into a runtime landmine;</li>
+<li>tends to spread: once one method throws unexpectedly, callers start wrapping every call in <code>try/except</code>, and the
+abstraction stops being trustworthy.</li>
+</ul>
+<h2>Solution overview</h2>
+<p>Don’t force “editable” onto something that isn’t. Split the contract: a narrower <code>ReadableDocument</code> (open, read) that
+both types honor, and an <code>EditableDocument</code> (extends <code>ReadableDocument</code>, adds <code>edit</code>/<code>save</code>) that only genuinely
+editable documents implement. <code>ReadOnlyDocument</code> implements just <code>ReadableDocument</code> — it never claims a capability
+it can’t deliver, so no caller can misuse it.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>        «interface»                    «interface»
+       ReadableDocument  ◀───extends─── EditableDocument
+       + open()                          + edit(text)
+       + read(): str                     + save()
+             ▲                                  ▲
+     ┌───────┴───────┐                  ┌───────┘
+ReadOnlyDocument   PdfViewerDocument   TextDocument (implements both)
+</code></pre>
+<p>Code that only needs to <em>read</em> documents (a search indexer, a preview pane) depends on <code>ReadableDocument</code> and can
+accept both kinds. Code that needs to <em>edit</em> depends on <code>EditableDocument</code> and the type system guarantees it only
+ever receives documents that truly support editing.</p>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Notice the LSP violation: a subclass overrides a method to throw/no-op instead of fulfilling it.</li>
+<li>Identify the actual, honest capability split (readable vs. editable).</li>
+<li>Introduce a narrower base interface (<code>ReadableDocument</code>) containing only what <em>every</em> subtype can genuinely do.</li>
+<li>Extend it with <code>EditableDocument</code> for the capability that not all subtypes share.</li>
+<li>Have each concrete class implement only the interface(s) it can honestly fulfill.</li>
+<li>Update callers to depend on the narrowest interface that satisfies their needs.</li>
+</ol>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ReadableDocument</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Every document, read-only or not, can do this.&quot;&quot;&quot;</span>
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">open</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">read</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EditableDocument</span>(<span class="hljs-title class_ inherited__">ReadableDocument</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Only documents that genuinely support mutation implement this.&quot;&quot;&quot;</span>
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">edit</span>(<span class="hljs-params">self, text: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">save</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TextDocument</span>(<span class="hljs-title class_ inherited__">EditableDocument</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>._content = <span class="hljs-string">&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">open</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Opening text document&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">read</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._content
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">edit</span>(<span class="hljs-params">self, text: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._content += text
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">save</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Saving: <span class="hljs-subst">{self._content!r}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ReadOnlyDocument</span>(<span class="hljs-title class_ inherited__">ReadableDocument</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Honest about its capabilities: it never claims to support edit().&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, content: <span class="hljs-built_in">str</span></span>):
+        <span class="hljs-variable language_">self</span>._content = content
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">open</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;Opening read-only document&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">read</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._content
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">print_all</span>(<span class="hljs-params">docs: <span class="hljs-built_in">list</span>[ReadableDocument]</span>) -&gt; <span class="hljs-literal">None</span>:
+    <span class="hljs-comment"># Safe for ANY ReadableDocument — no capability is assumed beyond what&#x27;s declared.</span>
+    <span class="hljs-keyword">for</span> doc <span class="hljs-keyword">in</span> docs:
+        doc.<span class="hljs-built_in">open</span>()
+        <span class="hljs-built_in">print</span>(doc.read())
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">edit_all</span>(<span class="hljs-params">docs: <span class="hljs-built_in">list</span>[EditableDocument], text: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+    <span class="hljs-comment"># Only ever called with documents that truly support editing — no runtime surprises.</span>
+    <span class="hljs-keyword">for</span> doc <span class="hljs-keyword">in</span> docs:
+        doc.edit(text)
+        doc.save()
+
+<span class="hljs-comment"># --- usage ---</span>
+mixed_docs: <span class="hljs-built_in">list</span>[ReadableDocument] = [TextDocument(), ReadOnlyDocument(<span class="hljs-string">&quot;Q3 report (locked)&quot;</span>)]
+print_all(mixed_docs)          <span class="hljs-comment"># works uniformly for both</span>
+edit_all([TextDocument()], <span class="hljs-string">&quot;Hello&quot;</span>)  <span class="hljs-comment"># only compiles/runs against editable documents</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">ReadableDocument</span> {
+    <span class="hljs-comment">// Every document, read-only or not, can do this.</span>
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">open</span><span class="hljs-params">()</span>;
+    String <span class="hljs-title function_">read</span><span class="hljs-params">()</span>;
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">EditableDocument</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">ReadableDocument</span> {
+    <span class="hljs-comment">// Only documents that genuinely support mutation implement this.</span>
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">edit</span><span class="hljs-params">(String text)</span>;
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">save</span><span class="hljs-params">()</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TextDocument</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">EditableDocument</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">content</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">open</span><span class="hljs-params">()</span> { System.out.println(<span class="hljs-string">&quot;Opening text document&quot;</span>); }
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">read</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> content.toString(); }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">edit</span><span class="hljs-params">(String text)</span> { content.append(text); }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">save</span><span class="hljs-params">()</span> { System.out.println(<span class="hljs-string">&quot;Saving: &quot;</span> + content); }
+}
+
+<span class="hljs-comment">// Honest about its capabilities: it never claims to support edit().</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ReadOnlyDocument</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">ReadableDocument</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String content;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">ReadOnlyDocument</span><span class="hljs-params">(String content)</span> { <span class="hljs-built_in">this</span>.content = content; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">open</span><span class="hljs-params">()</span> { System.out.println(<span class="hljs-string">&quot;Opening read-only document&quot;</span>); }
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">read</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> content; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DocumentTools</span> {
+    <span class="hljs-comment">// Safe for ANY ReadableDocument — no capability is assumed beyond what&#x27;s declared.</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">printAll</span><span class="hljs-params">(java.util.List&lt;ReadableDocument&gt; docs)</span> {
+        <span class="hljs-keyword">for</span> (ReadableDocument doc : docs) {
+            doc.open();
+            System.out.println(doc.read());
+        }
+    }
+
+    <span class="hljs-comment">// Only ever called with documents that truly support editing — no runtime surprises.</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">editAll</span><span class="hljs-params">(java.util.List&lt;EditableDocument&gt; docs, String text)</span> {
+        <span class="hljs-keyword">for</span> (EditableDocument doc : docs) {
+            doc.edit(text);
+            doc.save();
+        }
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// List&lt;ReadableDocument&gt; mixedDocs = List.of(new TextDocument(), new ReadOnlyDocument(&quot;Q3 report (locked)&quot;));</span>
+<span class="hljs-comment">// DocumentTools.printAll(mixedDocs);</span>
+<span class="hljs-comment">// DocumentTools.editAll(List.of(new TextDocument()), &quot;Hello&quot;);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Java’s compiler enforces that <code>edit_all</code>/<code>editAll</code> can only be called with objects that actually
+implement <code>EditableDocument</code> — passing a <code>ReadOnlyDocument</code> is a compile error, not a runtime one. Python’s typing
+is duck-typed and (without a static checker like <code>mypy</code>) would only fail at runtime, so LSP violations are easier to
+miss in Python until they’re exercised by a test or in production; running <code>mypy</code> against ABC-based hierarchies
+recovers most of that same safety.</p>
+<h2>Real-world example</h2>
+<p>The classic textbook example is <code>Rectangle</code>/<code>Square</code>: making <code>Square extends Rectangle</code> and overriding
+<code>setWidth</code>/<code>setHeight</code> to keep both sides equal breaks any code that sets width and height independently and expects
+<code>area()</code> to reflect exactly those two calls. The document editor example above is the same shape of problem in a
+domain you’ll actually see in interviews and real systems.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Callers can trust an interface completely — no hidden exceptions for "some" instances</li>
+<li>Removes defensive <code>try/except</code>/<code>instanceof</code> checks scattered through client code</li>
+<li>Encourages honest, minimal interfaces instead of one bloated base class</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Splitting a hierarchy (as above) means more interfaces to design up front</li>
+<li>Retrofitting LSP onto an existing violating hierarchy can be a large refactor</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Any time you’re about to override a method to throw <code>NotImplementedError</code>/<code>UnsupportedOperationException</code>, no-op
+it, or silently narrow what it accepts/returns.</li>
+<li>When reviewing a hierarchy where callers need <code>instanceof</code>/<code>isinstance</code> checks before calling a method — that’s a
+strong signal the base type’s contract isn’t actually honored by every subtype.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>LSP doesn’t mean subtypes must behave <em>identically</em> — they can extend behavior (stronger postconditions, weaker
+preconditions). It only forbids subtypes that violate what callers were promised.</li>
+</ul>
+<div class="callout pitfall">
+<div class="callout-title">🚫 Common misuse</div>
+<p>Don’t “fix” an LSP violation by adding <code>isinstance(doc, EditableDocument)</code> checks everywhere <code>edit()</code>
+is called — that reintroduces the coupling LSP is meant to remove. Fix the hierarchy instead, as shown above.</p>
+</div>
+<h2>Interview talking points</h2>
+<ul>
+<li>Recognize LSP violations by the tell: an overridden method that throws, silently does nothing, or changes what
+exceptions/inputs are acceptable versus the base class.</li>
+<li>Reference the “design by contract” framing: preconditions can’t be strengthened and postconditions can’t be
+weakened in a subtype.</li>
+<li>Connect it back to ISP: LSP violations are frequently <em>fixed</em> by segregating a fat interface into narrower ones
+(as we did with <code>Readable</code>/<code>EditableDocument</code>).</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/solid/isp/">Interface Segregation Principle</a> — the usual fix for an LSP violation is splitting the offending interface, exactly as ISP recommends.</li>
+<li><a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/">Interfaces vs. Abstract Classes</a> — understanding contract inheritance is essential to spotting LSP violations early.</li>
+<li><a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a> — relies heavily on subclasses honoring the base algorithm’s contract; an LSP-violating override breaks it the same way.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/solid/ocp/"><div class="dir">← Previous</div><div>Open/Closed Principle</div></a>
+<a href="/lld-patterns-hub/solid/isp/" class="to-next"><div class="dir">Next →</div><div>Interface Segregation Principle</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>LLD Patterns Hub</title>
+<meta name="description" content="undefined" />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="LLD Patterns Hub" />
+<meta property="og:description" content="undefined" />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/" aria-current="page">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<section class="hero">
+  <h1>Low-Level Design, explained the way interviews actually test it.</h1>
+  <p class="lede">
+    SOLID principles, creational/structural/behavioral patterns, and the OOP fundamentals behind them —
+    every page paired with a realistic Python <em>and</em> Java implementation of the same scenario.
+  </p>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="/lld-patterns-hub/fundamentals/">Start with Fundamentals</a>
+    <a class="btn btn-secondary" href="/lld-patterns-hub/cheatsheet/">Jump to the Cheat Sheet</a>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat"><div class="num">30</div><div class="label">Pattern &amp; principle pages</div></div>
+    <div class="stat"><div class="num">2</div><div class="label">Languages per example</div></div>
+    <div class="stat"><div class="num">4</div><div class="label">Pattern families covered</div></div>
+  </div>
+</section>
+
+<section class="home-section">
+  <h2>Browse by category</h2>
+  <div class="card-grid">
+<a class="card" href="/lld-patterns-hub/fundamentals/">
+  <div class="icon">🧱</div>
+  <h3>LLD Fundamentals</h3>
+  <p>Core object-oriented concepts every LLD answer rests on: composition vs. inheritance, the OOP pillars, dependency injection, immutability, cohesion and coupling.</p>
+</a>
+<a class="card" href="/lld-patterns-hub/solid/">
+  <div class="icon">🧭</div>
+  <h3>SOLID Principles</h3>
+  <p>Five principles that keep object-oriented code easy to extend and hard to break, with a bad-vs-improved example for each.</p>
+</a>
+<a class="card" href="/lld-patterns-hub/creational/">
+  <div class="icon">🏗️</div>
+  <h3>Creational Patterns</h3>
+  <p>Patterns that control how and when objects get created: Singleton, Factory Method, Abstract Factory, Builder, Prototype.</p>
+</a>
+<a class="card" href="/lld-patterns-hub/structural/">
+  <div class="icon">🧩</div>
+  <h3>Structural Patterns</h3>
+  <p>Patterns for composing classes and objects into larger structures: Adapter, Decorator, Facade, Composite, Proxy, Bridge.</p>
+</a>
+<a class="card" href="/lld-patterns-hub/behavioral/">
+  <div class="icon">🔄</div>
+  <h3>Behavioral Patterns</h3>
+  <p>Patterns for how objects communicate and share responsibility: Strategy, Observer, Command, State, Chain of Responsibility, Template Method, Iterator.</p>
+</a>
+    <a class="card" href="/lld-patterns-hub/cheatsheet/">
+      <div class="icon">📋</div>
+      <h3>Pattern Comparison / Cheat Sheet</h3>
+      <p>Factory vs. Abstract Factory, Strategy vs. State, Decorator vs. Proxy, and a "which pattern do I need?" lookup table.</p>
+    </a>
+  </div>
+</section>
+
+<section class="home-section">
+  <h2>Who this is for</h2>
+  <div class="pros-cons" style="grid-template-columns: repeat(3, 1fr);">
+    <div>
+      <h4>🎯 Interview prep</h4>
+      <p>Every pattern page ends with interview talking points and "when to use / when to avoid" so you can reason
+      out loud instead of reciting a definition.</p>
+    </div>
+    <div>
+      <h4>🛠️ Working engineers</h4>
+      <p>Examples use realistic domains — payments, ride booking, notifications, document editors — not
+      <code>Animal</code>/<code>Shape</code> toy classes.</p>
+    </div>
+    <div>
+      <h4>🔁 Bilingual by design</h4>
+      <p>Python and Java solve the same problem side by side, so you can see where dynamic typing simplifies things
+      and where Java's interfaces make intent explicit.</p>
+    </div>
+  </div>
+</section>
+
+<section class="home-section">
+  <h2>How each page is structured</h2>
+  <p class="summary-lede" style="max-width:var(--content-width)">
+    Consistency matters more than cleverness when you're studying. Every pattern and principle page follows the
+    same shape, so once you know how to read one, you know how to read all thirty.
+  </p>
+  <ol style="max-width:var(--content-width); columns: 2; column-gap: 40px;">
+    <li>Intent / definition</li>
+    <li>Problem statement</li>
+    <li>Why the naive approach fails</li>
+    <li>Solution overview + class design</li>
+    <li>Step-by-step walkthrough</li>
+    <li>Python example</li>
+    <li>Java example</li>
+    <li>Real-world example</li>
+    <li>Pros &amp; cons</li>
+    <li>When to use / avoid</li>
+    <li>Interview talking points</li>
+    <li>Related patterns</li>
+  </ol>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

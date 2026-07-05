@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>LLD Fundamentals · LLD Patterns Hub</title>
+<meta name="description" content="Core object-oriented concepts every LLD answer rests on: composition vs. inheritance, the OOP pillars, dependency injection, immutability, cohesion and coupling." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="LLD Fundamentals · LLD Patterns Hub" />
+<meta property="og:description" content="Core object-oriented concepts every LLD answer rests on: composition vs. inheritance, the OOP pillars, dependency injection, immutability, cohesion and coupling." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/" aria-current="page">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell no-sidebar">
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / LLD Fundamentals</p>
+    <h1>🧱 LLD Fundamentals</h1>
+    <p class="summary-lede">Core object-oriented concepts every LLD answer rests on: composition vs. inheritance, the OOP pillars, dependency injection, immutability, cohesion and coupling.</p>
+    <input class="filter-box" type="search" placeholder="Filter lld fundamentals..." data-filter-target=".card-grid .card" aria-label="Filter LLD Fundamentals" />
+    <div class="card-grid">
+<a class="card" href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/" data-search="composition vs. inheritance two ways to reuse code and share behavior — 'is-a' inheritance vs. 'has-a' composition — and why composition is usually the safer default. fundamentals oop delivery vehicles">
+  <h3>Composition vs. Inheritance</h3>
+  <p>Two ways to reuse code and share behavior — 'is-a' inheritance vs. 'has-a' composition — and why composition is usually the safer default.</p>
+  <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">OOP</span><span class="tag">delivery vehicles</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/fundamentals/oop-pillars/" data-search="abstraction, encapsulation & polymorphism the three pillars underneath every pattern on this site, grounded in one running media-player example. fundamentals oop media player">
+  <h3>Abstraction, Encapsulation & Polymorphism</h3>
+  <p>The three pillars underneath every pattern on this site, grounded in one running media-player example.</p>
+  <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">OOP</span><span class="tag">media player</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/fundamentals/dependency-injection/" data-search="dependency injection pass an object's dependencies in from outside instead of having it construct them itself — the standard technique for satisfying dependency inversion. fundamentals testing authentication">
+  <h3>Dependency Injection</h3>
+  <p>Pass an object's dependencies in from outside instead of having it construct them itself — the standard technique for satisfying Dependency Inversion.</p>
+  <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">testing</span><span class="tag">authentication</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/" data-search="interfaces vs. abstract classes two mechanisms for defining a shared contract — pure interfaces vs. abstract classes that also share implementation — and when to reach for each. fundamentals oop payment processing">
+  <h3>Interfaces vs. Abstract Classes</h3>
+  <p>Two mechanisms for defining a shared contract — pure interfaces vs. abstract classes that also share implementation — and when to reach for each.</p>
+  <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">OOP</span><span class="tag">payment processing</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/fundamentals/immutability/" data-search="immutability objects whose state can't change after construction — fewer bugs from shared mutable state, at the cost of creating new objects instead of mutating existing ones. fundamentals concurrency money handling">
+  <h3>Immutability</h3>
+  <p>Objects whose state can't change after construction — fewer bugs from shared mutable state, at the cost of creating new objects instead of mutating existing ones.</p>
+  <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">concurrency</span><span class="tag">money handling</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/" data-search="cohesion and coupling the two forces that determine how maintainable a design is: how tightly related a class's own responsibilities are (cohesion), and how tangled it is with other classes (coupling). fundamentals architecture order processing">
+  <h3>Cohesion and Coupling</h3>
+  <p>The two forces that determine how maintainable a design is: how tightly related a class's own responsibilities are (cohesion), and how tangled it is with other classes (coupling).</p>
+  <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">architecture</span><span class="tag">order processing</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/fundamentals/interview-tips/" data-search="common lld interview tips a repeatable framework for approaching any low-level design interview question, plus the mistakes that quietly lose points. fundamentals interviews process">
+  <h3>Common LLD Interview Tips</h3>
+  <p>A repeatable framework for approaching any Low-Level Design interview question, plus the mistakes that quietly lose points.</p>
+  <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">interviews</span><span class="tag">process</span></div>
+</a>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Proxy · LLD Patterns Hub</title>
+<meta name="description" content="Provide a stand-in for another object to control access to it — for lazy loading, caching, or permission checks." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Proxy · LLD Patterns Hub" />
+<meta property="og:description" content="Provide a stand-in for another object to control access to it — for lazy loading, caching, or permission checks." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/" aria-current="page">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Structural Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Structural Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/structural/adapter/">Adapter</a></li>
+<li><a href="/lld-patterns-hub/structural/decorator/">Decorator</a></li>
+<li><a href="/lld-patterns-hub/structural/facade/">Facade</a></li>
+<li><a href="/lld-patterns-hub/structural/composite/">Composite</a></li>
+<li><a href="/lld-patterns-hub/structural/proxy/" aria-current="page">Proxy</a></li>
+<li><a href="/lld-patterns-hub/structural/bridge/">Bridge</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/structural/">Structural Patterns</a> / Proxy</p>
+
+    <article class="prose">
+      <h1>Proxy</h1>
+      <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">access control</span></div>
+      <p class="summary-lede">Provide a stand-in for another object to control access to it — for lazy loading, caching, or permission checks.</p>
+<h2>Explanation in simple terms</h2>
+<p>A document editor needs to check permissions before letting a user open or edit a shared document — but the actual
+document-loading/editing logic shouldn’t have to know anything about permissions. A <strong>protection proxy</strong> sits in
+front of the real document service: it implements the exact same interface, checks the caller’s permission first,
+and only then delegates to the real object.</p>
+<h2>Practical example</h2>
+<div class="callout tip">
+<div class="callout-title">💡 Proxy vs. Decorator, concretely</div>
+<p>This protection proxy could easily be mistaken for a Decorator (it wraps another object implementing the same
+interface). The difference is intent: this proxy’s job is to <em>guard access</em> — callers without permission never
+reach the real object at all — whereas a Decorator’s job is to <em>add</em> behavior on top of a call that always
+goes through. See the <a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a> for the full comparison.</p>
+</div>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>      «interface»
+    DocumentService
+   + open(user, doc_id): str
+          ▲
+   ┌──────┴───────┐
+RealDocumentService   DocumentAccessProxy
+(actual file I/O)      ─ checks permissions, then delegates to ─▶ RealDocumentService
+</code></pre>
+<h2>Python code</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DocumentService</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">open</span>(<span class="hljs-params">self, user: <span class="hljs-built_in">str</span>, doc_id: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">RealDocumentService</span>(<span class="hljs-title class_ inherited__">DocumentService</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Does the actual (expensive) work: real file/database I/O.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">open</span>(<span class="hljs-params">self, user: <span class="hljs-built_in">str</span>, doc_id: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Loading document <span class="hljs-subst">{doc_id}</span> from disk...&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;&lt;contents of <span class="hljs-subst">{doc_id}</span>&gt;&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DocumentAccessProxy</span>(<span class="hljs-title class_ inherited__">DocumentService</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Same interface as RealDocumentService. Guards access before delegating.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, real_service: RealDocumentService, permissions: <span class="hljs-built_in">dict</span>[<span class="hljs-built_in">str</span>, <span class="hljs-built_in">set</span>[<span class="hljs-built_in">str</span>]]</span>):
+        <span class="hljs-variable language_">self</span>._real_service = real_service
+        <span class="hljs-variable language_">self</span>._permissions = permissions  <span class="hljs-comment"># doc_id -&gt; set of allowed users</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">open</span>(<span class="hljs-params">self, user: <span class="hljs-built_in">str</span>, doc_id: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+        allowed_users = <span class="hljs-variable language_">self</span>._permissions.get(doc_id, <span class="hljs-built_in">set</span>())
+        <span class="hljs-keyword">if</span> user <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> allowed_users:
+            <span class="hljs-keyword">raise</span> PermissionError(<span class="hljs-string">f&quot;<span class="hljs-subst">{user}</span> is not permitted to open <span class="hljs-subst">{doc_id}</span>&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._real_service.<span class="hljs-built_in">open</span>(user, doc_id)
+
+<span class="hljs-comment"># --- usage: callers use DocumentService exactly as before, unaware a proxy is involved ---</span>
+proxy = DocumentAccessProxy(
+    RealDocumentService(),
+    permissions={<span class="hljs-string">&quot;quarterly-report&quot;</span>: {<span class="hljs-string">&quot;ada&quot;</span>, <span class="hljs-string">&quot;grace&quot;</span>}},
+)
+<span class="hljs-built_in">print</span>(proxy.<span class="hljs-built_in">open</span>(<span class="hljs-string">&quot;ada&quot;</span>, <span class="hljs-string">&quot;quarterly-report&quot;</span>))     <span class="hljs-comment"># succeeds</span>
+proxy.<span class="hljs-built_in">open</span>(<span class="hljs-string">&quot;mallory&quot;</span>, <span class="hljs-string">&quot;quarterly-report&quot;</span>)         <span class="hljs-comment"># raises PermissionError</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.Map;
+<span class="hljs-keyword">import</span> java.util.Set;
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">DocumentService</span> {
+    String <span class="hljs-title function_">open</span><span class="hljs-params">(String user, String docId)</span>;
+}
+
+<span class="hljs-comment">// Does the actual (expensive) work: real file/database I/O.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">RealDocumentService</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">DocumentService</span> {
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">open</span><span class="hljs-params">(String user, String docId)</span> {
+        System.out.println(<span class="hljs-string">&quot;Loading document &quot;</span> + docId + <span class="hljs-string">&quot; from disk...&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;&lt;contents of &quot;</span> + docId + <span class="hljs-string">&quot;&gt;&quot;</span>;
+    }
+}
+
+<span class="hljs-comment">// Same interface as RealDocumentService. Guards access before delegating.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DocumentAccessProxy</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">DocumentService</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> RealDocumentService realService;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, Set&lt;String&gt;&gt; permissions; <span class="hljs-comment">// docId -&gt; allowed users</span>
+
+    DocumentAccessProxy(RealDocumentService realService, Map&lt;String, Set&lt;String&gt;&gt; permissions) {
+        <span class="hljs-built_in">this</span>.realService = realService;
+        <span class="hljs-built_in">this</span>.permissions = permissions;
+    }
+
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">open</span><span class="hljs-params">(String user, String docId)</span> {
+        Set&lt;String&gt; allowedUsers = permissions.getOrDefault(docId, Set.of());
+        <span class="hljs-keyword">if</span> (!allowedUsers.contains(user)) {
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecurityException</span>(user + <span class="hljs-string">&quot; is not permitted to open &quot;</span> + docId);
+        }
+        <span class="hljs-keyword">return</span> realService.open(user, docId);
+    }
+}
+
+<span class="hljs-comment">// --- usage: callers use DocumentService exactly as before, unaware a proxy is involved ---</span>
+<span class="hljs-comment">// DocumentAccessProxy proxy = new DocumentAccessProxy(</span>
+<span class="hljs-comment">//     new RealDocumentService(), Map.of(&quot;quarterly-report&quot;, Set.of(&quot;ada&quot;, &quot;grace&quot;)));</span>
+<span class="hljs-comment">// System.out.println(proxy.open(&quot;ada&quot;, &quot;quarterly-report&quot;));   // succeeds</span>
+<span class="hljs-comment">// proxy.open(&quot;mallory&quot;, &quot;quarterly-report&quot;);                    // throws SecurityException</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> both examples show a <strong>protection proxy</strong>. Other common variants: a <strong>virtual proxy</strong> that delays
+loading an expensive resource until first use (checking <code>if self._real is None: self._real = RealDocumentService()</code>
+inside <code>open()</code>), and a <strong>remote proxy</strong> that forwards calls over a network — Java RMI stubs and generated gRPC
+client stubs are both real remote proxies. The structure (same interface, delegate after some extra step) is
+identical across all variants in both languages.</p>
+<h2>Design reasoning</h2>
+<p>The proxy is only trustworthy if it’s indistinguishable from the real object <em>to well-behaved callers</em> — same
+method signatures, same return types, same exceptions for the same failure modes it doesn’t intercept. That’s what
+lets you swap a proxy in without touching any calling code.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Adds access control, caching, or lazy-loading without changing the real object or its callers</li>
+<li>Keeps cross-cutting concerns (permissions, logging, caching) out of the core business object</li>
+<li>Callers depend only on the shared interface, so proxies are easy to introduce or remove later</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Adds an indirection layer that can make call chains harder to trace</li>
+<li>A poorly designed proxy that leaks its own errors differently than the real object breaks the "transparent stand-in" guarantee</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>You need to guard, cache, meter, or lazily initialize access to an object without changing its public interface or
+its callers.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>If the “extra step” you want to add is really new <em>behavior</em> the caller should be aware of (not just access
+control/optimization), Decorator communicates intent better.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>Name the proxy variant explicitly: protection (access control), virtual (lazy loading), remote (network stand-in),
+or caching proxy — interviewers often want to see you know there’s more than one flavor.</li>
+<li>Be precise about the Proxy vs. Decorator distinction: it’s about <em>intent</em> (control access vs. add behavior), not
+structure — the code often looks nearly identical.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/structural/decorator/">Decorator</a> — structurally similar; differs in intent (adds behavior vs. controls access).</li>
+<li><a href="/lld-patterns-hub/structural/adapter/">Adapter</a> — Adapter changes the interface to match a different one; Proxy keeps the exact same interface.</li>
+<li><a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a> — proxies are commonly injected in place of the real object, so callers never need to know which one they received.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/structural/composite/"><div class="dir">← Previous</div><div>Composite</div></a>
+<a href="/lld-patterns-hub/structural/bridge/" class="to-next"><div class="dir">Next →</div><div>Bridge</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

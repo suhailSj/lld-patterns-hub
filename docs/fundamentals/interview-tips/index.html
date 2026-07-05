@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Common LLD Interview Tips · LLD Patterns Hub</title>
+<meta name="description" content="A repeatable framework for approaching any Low-Level Design interview question, plus the mistakes that quietly lose points." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Common LLD Interview Tips · LLD Patterns Hub" />
+<meta property="og:description" content="A repeatable framework for approaching any Low-Level Design interview question, plus the mistakes that quietly lose points." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/" aria-current="page">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 LLD Fundamentals</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>LLD Fundamentals</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/oop-pillars/">Abstraction, Encapsulation & Polymorphism</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/">Interfaces vs. Abstract Classes</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/immutability/">Immutability</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/">Cohesion and Coupling</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interview-tips/" aria-current="page">Common LLD Interview Tips</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/fundamentals/">LLD Fundamentals</a> / Common LLD Interview Tips</p>
+
+    <article class="prose">
+      <h1>Common LLD Interview Tips</h1>
+      <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">interviews</span><span class="tag">process</span></div>
+      <p class="summary-lede">A repeatable framework for approaching any Low-Level Design interview question, plus the mistakes that quietly lose points.</p>
+<h2>Intent / definition</h2>
+<p>Unlike algorithm interviews, LLD interviews rarely have one “correct” answer — you’re being evaluated on <em>process</em>:
+how you clarify requirements, identify responsibilities, choose patterns deliberately (not by name-dropping), and
+discuss tradeoffs. This page is a repeatable framework, not another pattern.</p>
+<h2>The problem with going in unprepared</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 The most common failure mode</div>
+<p>Jumping straight to code (“let me create a <code>Vehicle</code> class…”) without first clarifying scope is the single most
+common way candidates lose points — even when the code they write is technically fine. Interviewers are watching
+whether you ask good questions before committing to a design as much as whether the design itself is good.</p>
+</div>
+<h2>A repeatable framework</h2>
+<h3>1. Clarify requirements (2–3 minutes)</h3>
+<p>Ask about scale, must-have vs. nice-to-have features, and constraints. For “design a parking lot,” that means:
+how many levels/spots, multiple vehicle types, payment handling, is concurrency (multiple entry gates) in scope?
+Write down the functional requirements you agree on before writing a single class.</p>
+<h3>2. Identify the core entities and responsibilities</h3>
+<p>List the nouns (<code>ParkingSpot</code>, <code>Vehicle</code>, <code>Ticket</code>, <code>PaymentProcessor</code>) and, for each, name its <em>one</em> responsibility
+in a sentence — this is <a href="/lld-patterns-hub/solid/srp/">SRP</a> applied at design time, before any code exists.
+If a sentence needs “and,” that entity probably needs to split into two.</p>
+<h3>3. Sketch relationships before methods</h3>
+<p>Decide is-a vs. has-a for each relationship (see
+<a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a>) and draw it —
+even a rough box-and-arrow sketch shows the interviewer you’re thinking about structure before syntax.</p>
+<h3>4. Apply patterns where they solve a real problem you can name</h3>
+<div class="callout pitfall">
+<div class="callout-title">🚫 Don't pattern-drop</div>
+<p>Naming a pattern because you know its name, without a specific problem it solves in <em>this</em> design, reads as
+memorization rather than understanding. Instead of “I’ll use a Factory here,” say “vehicle type determines which
+concrete spot-matching strategy to use, and that decision will grow over time, so I’ll extract it into a
+<a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a> instead of an if/elif chain.”</p>
+</div>
+<h3>5. Write the code</h3>
+<p>Keep it compileable-looking and consistent — real method signatures, real types, no hand-waved pseudocode where a
+short real implementation would take the same time.</p>
+<h3>6. Proactively discuss tradeoffs and extensions</h3>
+<p>Before the interviewer asks, mention: “if we needed to support multiple payment providers later, I’d extract this
+into a <a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a>,” or “this uses a
+<a href="/lld-patterns-hub/creational/singleton/">Singleton</a> for the spot registry, which would need to become
+per-location if we ever supported multiple parking garages.” This shows you know the limits of your own design.</p>
+<h2>A tiny worked example</h2>
+<p>Even a “just talk me through it” answer benefits from a few real lines of code to ground the discussion. Here’s how
+step 2–4 above might look for a small piece of a parking-lot design: matching a vehicle to a compatible spot type is
+exactly the kind of decision that grows over time and benefits from Factory Method rather than an if/elif chain.</p>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> enum <span class="hljs-keyword">import</span> Enum
+<span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">VehicleType</span>(<span class="hljs-title class_ inherited__">Enum</span>):
+    MOTORCYCLE = <span class="hljs-string">&quot;motorcycle&quot;</span>
+    CAR = <span class="hljs-string">&quot;car&quot;</span>
+    BUS = <span class="hljs-string">&quot;bus&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SpotMatcher</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">matches</span>(<span class="hljs-params">self, spot_size: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">bool</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CarSpotMatcher</span>(<span class="hljs-title class_ inherited__">SpotMatcher</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">matches</span>(<span class="hljs-params">self, spot_size: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-keyword">return</span> spot_size <span class="hljs-keyword">in</span> (<span class="hljs-string">&quot;compact&quot;</span>, <span class="hljs-string">&quot;large&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SpotMatcherFactory</span>:
+    <span class="hljs-string">&quot;&quot;&quot;The one place aware of the mapping — grows without touching calling code.&quot;&quot;&quot;</span>
+
+    _matchers = {VehicleType.CAR: CarSpotMatcher()}
+
+<span class="hljs-meta">    @classmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get_matcher</span>(<span class="hljs-params">cls, vehicle_type: VehicleType</span>) -&gt; SpotMatcher:
+        <span class="hljs-keyword">return</span> cls._matchers[vehicle_type]
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">enum</span> <span class="hljs-title class_">VehicleType</span> { MOTORCYCLE, CAR, BUS }
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">SpotMatcher</span> {
+    <span class="hljs-type">boolean</span> <span class="hljs-title function_">matches</span><span class="hljs-params">(String spotSize)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CarSpotMatcher</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">SpotMatcher</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">matches</span><span class="hljs-params">(String spotSize)</span> {
+        <span class="hljs-keyword">return</span> spotSize.equals(<span class="hljs-string">&quot;compact&quot;</span>) || spotSize.equals(<span class="hljs-string">&quot;large&quot;</span>);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SpotMatcherFactory</span> {
+    <span class="hljs-comment">// The one place aware of the mapping — grows without touching calling code.</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> java.util.Map&lt;VehicleType, SpotMatcher&gt; MATCHERS =
+        java.util.Map.of(VehicleType.CAR, <span class="hljs-keyword">new</span> <span class="hljs-title class_">CarSpotMatcher</span>());
+
+    <span class="hljs-keyword">static</span> SpotMatcher <span class="hljs-title function_">getMatcher</span><span class="hljs-params">(VehicleType vehicleType)</span> {
+        <span class="hljs-keyword">return</span> MATCHERS.get(vehicleType);
+    }
+}
+</code></pre>
+  </div>
+</div>
+<h2>Checklist for the last 5 minutes</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Do</h4>
+<ul>
+<li>Name the SOLID principle or pattern you applied and <em>why</em>, in one sentence each</li>
+<li>Mention one thing you'd change with more time (a known simplification)</li>
+<li>Ask if the interviewer wants you to go deeper on any specific class</li>
+</ul>
+</div>
+<div>
+<h4>❌ Don't</h4>
+<ul>
+<li>Introduce a pattern with no problem it solves in this specific design</li>
+<li>Silently skip clarifying requirements to "save time" — it costs more time later when the design doesn't match expectations</li>
+<li>Over-engineer a first pass — start simple, then extend, narrating each extension</li>
+</ul>
+</div>
+</div>
+<h2>When this framework applies</h2>
+<ul>
+<li>Any “design a system” interview question: parking lot, elevator system, library system, ride-booking, vending
+machine, tic-tac-toe, chess.</li>
+</ul>
+<h2>When to deviate</h2>
+<ul>
+<li>If the interviewer explicitly asks you to skip straight to a specific class or pattern, follow their lead — the
+framework is a default sequence, not a rigid script.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>The single highest-leverage habit: narrate your reasoning out loud continuously, not just at the end. Interviewers
+grade the <em>process</em> they can observe, not just the artifact you end with.</li>
+<li>Practice explaining the same design at two levels: a 30-second summary and a 5-minute deep dive — you’ll often be
+asked for both.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/solid/srp/">Single Responsibility Principle</a> — the first lens to apply once entities are identified.</li>
+<li><a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/">Cohesion and Coupling</a> — the vocabulary for justifying <em>why</em> a design choice is better, not just that it “feels cleaner.”</li>
+<li><a href="/lld-patterns-hub/cheatsheet/">Pattern Comparison / Cheat Sheet</a> — the fastest last-minute review before an interview.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/"><div class="dir">← Previous</div><div>Cohesion and Coupling</div></a>
+<span></span>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

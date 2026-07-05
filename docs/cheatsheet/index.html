@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Pattern Comparison / Cheat Sheet · LLD Patterns Hub</title>
+<meta name="description" content="Side-by-side comparisons of commonly confused LLD patterns, plus a lookup table for choosing the right pattern fast." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Pattern Comparison / Cheat Sheet · LLD Patterns Hub" />
+<meta property="og:description" content="Side-by-side comparisons of commonly confused LLD patterns, plus a lookup table for choosing the right pattern fast." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/" aria-current="page">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell no-sidebar">
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / Cheat Sheet</p>
+    <article class="prose">
+      <h1>📋 Pattern Comparison / Cheat Sheet</h1>
+      <p class="summary-lede">
+        The fastest way to sound confident in an LLD interview is to know not just what a pattern does, but which
+        <em>other</em> pattern people confuse it with — and why. Use this page as a last-minute review.
+      </p>
+
+      <h2>"Which pattern do I need?" lookup table</h2>
+      <div class="cheat-table-wrap">
+        <table>
+          <thead><tr><th>If you need to&hellip;</th><th>Reach for</th><th>Family</th></tr></thead>
+          <tbody>
+            <tr><td>Guarantee exactly one instance of a class (a config store, a connection pool)</td><td><a href="/lld-patterns-hub/creational/singleton/">Singleton</a></td><td>Creational</td></tr>
+            <tr><td>Hide which concrete class gets built based on input</td><td><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a></td><td>Creational</td></tr>
+            <tr><td>Create families of related objects that must stay consistent (e.g. a UI theme's button + checkbox)</td><td><a href="/lld-patterns-hub/creational/abstract-factory/">Abstract Factory</a></td><td>Creational</td></tr>
+            <tr><td>Construct a complex object step-by-step with optional parts</td><td><a href="/lld-patterns-hub/creational/builder/">Builder</a></td><td>Creational</td></tr>
+            <tr><td>Create new objects by copying an existing, pre-configured one</td><td><a href="/lld-patterns-hub/creational/prototype/">Prototype</a></td><td>Creational</td></tr>
+            <tr><td>Make two incompatible interfaces work together without changing either</td><td><a href="/lld-patterns-hub/structural/adapter/">Adapter</a></td><td>Structural</td></tr>
+            <tr><td>Add behavior to individual objects at runtime without subclass explosion</td><td><a href="/lld-patterns-hub/structural/decorator/">Decorator</a></td><td>Structural</td></tr>
+            <tr><td>Give a simple entry point to a complicated subsystem</td><td><a href="/lld-patterns-hub/structural/facade/">Facade</a></td><td>Structural</td></tr>
+            <tr><td>Treat individual objects and groups of objects the same way (files/folders, org charts)</td><td><a href="/lld-patterns-hub/structural/composite/">Composite</a></td><td>Structural</td></tr>
+            <tr><td>Control or defer access to an expensive or sensitive object</td><td><a href="/lld-patterns-hub/structural/proxy/">Proxy</a></td><td>Structural</td></tr>
+            <tr><td>Let an abstraction and its implementation evolve independently</td><td><a href="/lld-patterns-hub/structural/bridge/">Bridge</a></td><td>Structural</td></tr>
+            <tr><td>Swap an algorithm at runtime (pricing rules, sorting, routing)</td><td><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a></td><td>Behavioral</td></tr>
+            <tr><td>Notify many dependents automatically when one object changes</td><td><a href="/lld-patterns-hub/behavioral/observer/">Observer</a></td><td>Behavioral</td></tr>
+            <tr><td>Turn a request into an object you can queue, log, undo, or retry</td><td><a href="/lld-patterns-hub/behavioral/command/">Command</a></td><td>Behavioral</td></tr>
+            <tr><td>Change an object's behavior entirely when its internal state changes</td><td><a href="/lld-patterns-hub/behavioral/state/">State</a></td><td>Behavioral</td></tr>
+            <tr><td>Pass a request along a chain of handlers until one handles it</td><td><a href="/lld-patterns-hub/behavioral/chain-of-responsibility/">Chain of Responsibility</a></td><td>Behavioral</td></tr>
+            <tr><td>Fix the skeleton of an algorithm but let subclasses override specific steps</td><td><a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a></td><td>Behavioral</td></tr>
+            <tr><td>Walk through a collection without exposing how it's stored</td><td><a href="/lld-patterns-hub/behavioral/iterator/">Iterator</a></td><td>Behavioral</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Factory Method vs. Abstract Factory</h2>
+      <div class="cheat-table-wrap">
+        <table>
+          <thead><tr><th></th><th>Factory Method</th><th>Abstract Factory</th></tr></thead>
+          <tbody>
+            <tr><td>What it creates</td><td>One product, via one overridable creation method</td><td>Families of related products via multiple factory methods on one interface</td></tr>
+            <tr><td>Typical shape</td><td>One method, e.g. <code>createNotifier()</code></td><td>One interface with several methods, e.g. <code>createButton()</code> + <code>createCheckbox()</code></td></tr>
+            <tr><td>Extension mechanism</td><td>Subclass the creator</td><td>Swap the whole concrete factory</td></tr>
+            <tr><td>Use it when</td><td>You have one product hierarchy and want to defer instantiation to subclasses</td><td>Products must be created in matching sets and mixing sets would break things</td></tr>
+            <tr><td>Relationship</td><td colspan="2">Abstract Factory is often implemented as a collection of Factory Methods, one per product.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Strategy vs. State</h2>
+      <div class="cheat-table-wrap">
+        <table>
+          <thead><tr><th></th><th>Strategy</th><th>State</th></tr></thead>
+          <tbody>
+            <tr><td>Structurally</td><td colspan="2">Nearly identical — both delegate behavior to an interchangeable object</td></tr>
+            <tr><td>Who chooses the implementation</td><td>The client, explicitly, based on configuration or user choice</td><td>The state objects themselves, implicitly, by transitioning to each other</td></tr>
+            <tr><td>Do implementations know about each other?</td><td>No — strategies are independent and interchangeable</td><td>Often yes — a state decides which state comes next</td></tr>
+            <tr><td>Typical example</td><td>Choosing a payment method or sort algorithm</td><td>An order moving from Placed → Paid → Shipped → Delivered</td></tr>
+            <tr><td>Mental model</td><td>"How should this be done?"</td><td>"What can this object do right now, given what's happened to it?"</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Decorator vs. Proxy</h2>
+      <div class="cheat-table-wrap">
+        <table>
+          <thead><tr><th></th><th>Decorator</th><th>Proxy</th></tr></thead>
+          <tbody>
+            <tr><td>Intent</td><td>Add new behavior/responsibility to an object</td><td>Control access to an object (lazy-load it, cache it, guard it)</td></tr>
+            <tr><td>Composability</td><td>Designed to be stacked — many decorators wrap the same core object</td><td>Usually one proxy in front of one real subject</td></tr>
+            <tr><td>Does it change what the object does?</td><td>Yes, deliberately — that's the point</td><td>No — it should behave identically to the real object from the caller's view</td></tr>
+            <tr><td>Typical example</td><td>Wrapping a notifier with logging, then retry, then rate-limiting</td><td>A virtual proxy that delays opening a large file until <code>read()</code> is first called</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Composition vs. Inheritance</h2>
+      <div class="cheat-table-wrap">
+        <table>
+          <thead><tr><th></th><th>Inheritance ("is-a")</th><th>Composition ("has-a")</th></tr></thead>
+          <tbody>
+            <tr><td>Coupling</td><td>Tight — subclass depends on parent's internals</td><td>Loose — object depends only on a small interface</td></tr>
+            <tr><td>Flexibility at runtime</td><td>Fixed at compile time (Java) / class definition time</td><td>Can swap the composed object at runtime</td></tr>
+            <tr><td>Risk</td><td>Deep hierarchies become fragile ("fragile base class" problem)</td><td>More objects/wiring to keep track of</td></tr>
+            <tr><td>Rule of thumb</td><td colspan="2">Prefer composition by default; reach for inheritance only when the subtype truly satisfies Liskov Substitution.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>See the full writeup on <a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a> in Fundamentals.</p>
+
+      <h2>Creational vs. Structural vs. Behavioral, in one line each</h2>
+      <ul>
+        <li><strong>Creational</strong> — how objects get built.</li>
+        <li><strong>Structural</strong> — how objects and classes are composed into larger structures.</li>
+        <li><strong>Behavioral</strong> — how objects communicate and divide responsibility at runtime.</li>
+      </ul>
+    </article>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

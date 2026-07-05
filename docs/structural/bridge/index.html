@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Bridge · LLD Patterns Hub</title>
+<meta name="description" content="Decouple an abstraction from its implementation so the two can vary and evolve independently." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Bridge · LLD Patterns Hub" />
+<meta property="og:description" content="Decouple an abstraction from its implementation so the two can vary and evolve independently." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/" aria-current="page">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Structural Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Structural Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/structural/adapter/">Adapter</a></li>
+<li><a href="/lld-patterns-hub/structural/decorator/">Decorator</a></li>
+<li><a href="/lld-patterns-hub/structural/facade/">Facade</a></li>
+<li><a href="/lld-patterns-hub/structural/composite/">Composite</a></li>
+<li><a href="/lld-patterns-hub/structural/proxy/">Proxy</a></li>
+<li><a href="/lld-patterns-hub/structural/bridge/" aria-current="page">Bridge</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/structural/">Structural Patterns</a> / Bridge</p>
+
+    <article class="prose">
+      <h1>Bridge</h1>
+      <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">notification systems</span></div>
+      <p class="summary-lede">Decouple an abstraction from its implementation so the two can vary and evolve independently.</p>
+<h2>Explanation in simple terms</h2>
+<p>A notification system has message <em>types</em> (Alert, Promotion, Reminder) and delivery <em>channels</em> (Email, SMS, Push).
+Naive inheritance — <code>AlertEmail</code>, <code>AlertSms</code>, <code>PromotionEmail</code>, <code>PromotionSms</code>, … — creates one class per
+combination: 3 types × 3 channels = 9 classes, and every new type or channel multiplies the total. Bridge splits the
+two dimensions into separate hierarchies connected by composition, so each dimension can grow independently: 3 + 3 =
+6 classes, and either can be extended without touching the other.</p>
+<h2>Practical example</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 The class explosion Bridge prevents</div>
+<p>Without Bridge: adding a 4th channel (Slack) to the 9-class inheritance version means writing 3 new classes
+(<code>AlertSlack</code>, <code>PromotionSlack</code>, <code>ReminderSlack</code>). With Bridge: adding Slack means writing exactly <strong>one</strong>
+new class, because message types and channels vary independently.</p>
+</div>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>     «abstraction»                          «implementor» (the &quot;bridge&quot;)
+      Message                                DeliveryChannel
+   - channel: DeliveryChannel  ◀──has-a──   + send(text): None
+   + notify(text)                                 ▲
+        ▲                              ┌───────────┼───────────┐
+  ┌─────┼──────┐                  EmailChannel  SmsChannel  PushChannel
+ Alert  Promotion  Reminder      (implementation hierarchy — grows independently)
+ (abstraction hierarchy — grows independently)
+</code></pre>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Identify the two independent dimensions of variation (message type, delivery channel).</li>
+<li>Define an “implementor” interface for one dimension (<code>DeliveryChannel</code>) with concrete implementations per channel.</li>
+<li>Define an “abstraction” base class for the other dimension (<code>Message</code>) that <strong>holds a reference</strong> to a
+<code>DeliveryChannel</code> instead of inheriting from a channel-specific class.</li>
+<li>Each concrete <code>Message</code> subtype (Alert, Promotion) delegates the actual sending to whatever channel it was given.</li>
+<li>New message types and new channels can now be added independently — neither hierarchy needs to know how big the
+other one is.</li>
+</ol>
+<h2>Python code</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DeliveryChannel</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;The implementor hierarchy: HOW a message physically gets delivered.&quot;&quot;&quot;</span>
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, text: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EmailChannel</span>(<span class="hljs-title class_ inherited__">DeliveryChannel</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, text: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[email] <span class="hljs-subst">{text}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SmsChannel</span>(<span class="hljs-title class_ inherited__">DeliveryChannel</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, text: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[sms] <span class="hljs-subst">{text}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PushChannel</span>(<span class="hljs-title class_ inherited__">DeliveryChannel</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, text: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[push] <span class="hljs-subst">{text}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Message</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;The abstraction hierarchy: WHAT kind of message this is. Holds a channel (bridge), doesn&#x27;t inherit from one.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, channel: DeliveryChannel</span>):
+        <span class="hljs-variable language_">self</span>._channel = channel
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">notify</span>(<span class="hljs-params">self, body: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AlertMessage</span>(<span class="hljs-title class_ inherited__">Message</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">notify</span>(<span class="hljs-params">self, body: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._channel.send(<span class="hljs-string">f&quot;🚨 ALERT: <span class="hljs-subst">{body}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PromotionMessage</span>(<span class="hljs-title class_ inherited__">Message</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">notify</span>(<span class="hljs-params">self, body: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._channel.send(<span class="hljs-string">f&quot;💸 Deal: <span class="hljs-subst">{body}</span>&quot;</span>)
+
+<span class="hljs-comment"># --- usage: mix any message type with any channel, independently ---</span>
+AlertMessage(SmsChannel()).notify(<span class="hljs-string">&quot;Unusual sign-in detected&quot;</span>)
+PromotionMessage(EmailChannel()).notify(<span class="hljs-string">&quot;20% off this weekend&quot;</span>)
+AlertMessage(PushChannel()).notify(<span class="hljs-string">&quot;Payment failed&quot;</span>)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">DeliveryChannel</span> {
+    <span class="hljs-comment">// The implementor hierarchy: HOW a message physically gets delivered.</span>
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String text)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EmailChannel</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">DeliveryChannel</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String text)</span> { System.out.println(<span class="hljs-string">&quot;[email] &quot;</span> + text); }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SmsChannel</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">DeliveryChannel</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String text)</span> { System.out.println(<span class="hljs-string">&quot;[sms] &quot;</span> + text); }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PushChannel</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">DeliveryChannel</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String text)</span> { System.out.println(<span class="hljs-string">&quot;[push] &quot;</span> + text); }
+}
+
+<span class="hljs-comment">// The abstraction hierarchy: WHAT kind of message this is. Holds a channel (bridge), doesn&#x27;t inherit from one.</span>
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Message</span> {
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> DeliveryChannel channel;
+    <span class="hljs-keyword">protected</span> <span class="hljs-title function_">Message</span><span class="hljs-params">(DeliveryChannel channel)</span> { <span class="hljs-built_in">this</span>.channel = channel; }
+
+    <span class="hljs-keyword">abstract</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">notify</span><span class="hljs-params">(String body)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AlertMessage</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Message</span> {
+    AlertMessage(DeliveryChannel channel) { <span class="hljs-built_in">super</span>(channel); }
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">notify</span><span class="hljs-params">(String body)</span> { channel.send(<span class="hljs-string">&quot;🚨 ALERT: &quot;</span> + body); }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PromotionMessage</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Message</span> {
+    PromotionMessage(DeliveryChannel channel) { <span class="hljs-built_in">super</span>(channel); }
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">notify</span><span class="hljs-params">(String body)</span> { channel.send(<span class="hljs-string">&quot;💸 Deal: &quot;</span> + body); }
+}
+
+<span class="hljs-comment">// --- usage: mix any message type with any channel, independently ---</span>
+<span class="hljs-comment">// new AlertMessage(new SmsChannel()).notify(&quot;Unusual sign-in detected&quot;);</span>
+<span class="hljs-comment">// new PromotionMessage(new EmailChannel()).notify(&quot;20% off this weekend&quot;);</span>
+<span class="hljs-comment">// new AlertMessage(new PushChannel()).notify(&quot;Payment failed&quot;);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> the “bridge” itself — a reference held via composition rather than inheritance — reads
+identically in both languages. This is the same underlying idea as the
+<a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">composition-over-inheritance</a> guidance applied
+specifically to eliminate a two-dimensional class explosion.</p>
+<h2>Design reasoning</h2>
+<p>The key design decision is <em>which</em> dimension becomes the “abstraction” (held by reference) and which becomes the
+“implementor” (referenced). Here, message <em>type</em> is the abstraction because it’s the caller-facing concept
+(<code>AlertMessage</code>, <code>PromotionMessage</code>); delivery <em>channel</em> is the implementor because it’s an interchangeable detail of
+<em>how</em> the message reaches the user.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Eliminates class-count multiplication across two independent dimensions</li>
+<li>Either dimension can be extended (new message type, new channel) without touching the other</li>
+<li>Both hierarchies can be tested independently</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Adds an extra layer of indirection versus a simple inheritance hierarchy when there's really only one dimension of variation</li>
+<li>Requires spotting the "two independent dimensions" shape up front — it's not always obvious in early designs</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>You have two (or more) independent ways a class can vary, and inheritance alone would force you to represent every
+combination as a separate class.</li>
+<li>You want both dimensions to be extensible by different teams/timelines without coordinating changes to a shared
+class.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>If there’s genuinely only one dimension of variation, plain inheritance or Strategy alone is simpler than
+introducing a second hierarchy.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>The tell for Bridge: “there are two things that vary independently, and multiplying them together as subclasses
+would explode.” Naming that shape is usually more valuable than reciting the abstraction/implementor vocabulary.</li>
+<li>Contrast with Abstract Factory: Bridge decouples <em>one</em> abstraction from <em>one</em> implementation hierarchy at the
+object level; Abstract Factory produces <em>families</em> of related objects together.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a> — Bridge is essentially “prefer composition” applied specifically to a two-dimensional variation problem.</li>
+<li><a href="/lld-patterns-hub/creational/abstract-factory/">Abstract Factory</a> — can be used to construct the correct <code>Message</code> + <code>DeliveryChannel</code> pairing without the caller needing to know concrete classes.</li>
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a> — structurally similar (composition over an interface), but Strategy varies one algorithm at a time rather than decoupling two independent hierarchies.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/structural/proxy/"><div class="dir">← Previous</div><div>Proxy</div></a>
+<span></span>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

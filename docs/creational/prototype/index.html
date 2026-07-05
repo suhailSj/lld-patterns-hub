@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Prototype · LLD Patterns Hub</title>
+<meta name="description" content="Create new objects by copying an existing, pre-configured instance instead of building one from scratch." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Prototype · LLD Patterns Hub" />
+<meta property="og:description" content="Create new objects by copying an existing, pre-configured instance instead of building one from scratch." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/" aria-current="page">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Creational Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Creational Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/creational/singleton/">Singleton</a></li>
+<li><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a></li>
+<li><a href="/lld-patterns-hub/creational/abstract-factory/">Abstract Factory</a></li>
+<li><a href="/lld-patterns-hub/creational/builder/">Builder</a></li>
+<li><a href="/lld-patterns-hub/creational/prototype/" aria-current="page">Prototype</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/creational/">Creational Patterns</a> / Prototype</p>
+
+    <article class="prose">
+      <h1>Prototype</h1>
+      <div class="pattern-meta"><span class="tag">Creational</span><span class="tag">GoF</span><span class="tag">invoice templates</span></div>
+      <p class="summary-lede">Create new objects by copying an existing, pre-configured instance instead of building one from scratch.</p>
+<h2>What problem it solves</h2>
+<p>An invoicing system offers several pre-designed invoice templates (Standard, Detailed-Line-Items, Minimal) that are
+expensive to assemble — each loads default line items, tax rules, branding assets, and layout metadata, possibly from
+a database or a remote template service. Building a fresh invoice from scratch every time a user picks a template
+means repeating that expensive setup. Prototype instead keeps one fully-configured instance of each template around
+and creates new invoices by <strong>cloning</strong> it.</p>
+<h2>When to use</h2>
+<ul>
+<li>Constructing an object from scratch is expensive (I/O, computation, or many small configuration steps) but you
+already have an equivalent, fully-configured instance sitting around.</li>
+<li>You need many slightly different variations of a base configuration (a “starter” object that gets tweaked per
+copy).</li>
+<li>You want to add new “kinds” of pre-configured object at runtime, by registering new prototypes, without touching
+a factory’s source code (a registry of prototypes is itself a lightweight alternative to Abstract Factory).</li>
+</ul>
+<h2>When not to use</h2>
+<ul>
+<li>If construction is already cheap, cloning adds complexity for no real benefit — just construct a new instance.</li>
+<li>Be careful with <strong>deep vs. shallow copies</strong>: naive shallow cloning can leave two “independent” objects secretly
+sharing the same mutable nested list/dict, causing one invoice’s edits to bleed into another’s.</li>
+</ul>
+<div class="callout pitfall">
+<div class="callout-title">🚫 Shallow copy surprises</div>
+<p>If <code>Invoice.line_items</code> is a list and you clone with a shallow copy, both the original template and the
+new invoice point at the <em>same</em> list object. Editing the new invoice’s line items would silently mutate the
+shared template. Always deep-copy mutable nested state when implementing Prototype.</p>
+</div>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>      «interface»
+      InvoiceTemplate
+    + clone() -&gt; InvoiceTemplate
+            ▲
+   ┌────────┼──────────┐
+StandardInvoice   DetailedInvoice   MinimalInvoice
+ (pre-configured prototypes, registered once)
+
+TemplateRegistry
+  + register(name, prototype)
+  + create(name) -&gt; InvoiceTemplate   ◀── returns prototype.clone(), not a fresh build
+</code></pre>
+<h2>Python example</h2>
+<p>Python’s standard library ships <code>copy.deepcopy</code>, which makes Prototype nearly free to implement correctly.</p>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">import</span> copy
+<span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass, field
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Invoice</span>:
+    template_name: <span class="hljs-built_in">str</span>
+    line_items: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">str</span>] = field(default_factory=<span class="hljs-built_in">list</span>)
+    tax_rate: <span class="hljs-built_in">float</span> = <span class="hljs-number">0.0</span>
+    footer_note: <span class="hljs-built_in">str</span> = <span class="hljs-string">&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">clone</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-string">&quot;Invoice&quot;</span>:
+        <span class="hljs-comment"># Deep copy: mutable fields (line_items) must not be shared with the prototype.</span>
+        <span class="hljs-keyword">return</span> copy.deepcopy(<span class="hljs-variable language_">self</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TemplateRegistry</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Holds one expensive, fully-configured prototype per template name.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>._prototypes: <span class="hljs-built_in">dict</span>[<span class="hljs-built_in">str</span>, Invoice] = {}
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">register</span>(<span class="hljs-params">self, name: <span class="hljs-built_in">str</span>, prototype: Invoice</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._prototypes[name] = prototype
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">create</span>(<span class="hljs-params">self, name: <span class="hljs-built_in">str</span></span>) -&gt; Invoice:
+        prototype = <span class="hljs-variable language_">self</span>._prototypes.get(name)
+        <span class="hljs-keyword">if</span> prototype <span class="hljs-keyword">is</span> <span class="hljs-literal">None</span>:
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">f&quot;No template registered as &#x27;<span class="hljs-subst">{name}</span>&#x27;&quot;</span>)
+        <span class="hljs-keyword">return</span> prototype.clone()  <span class="hljs-comment"># cheap: copy, not rebuild</span>
+
+<span class="hljs-comment"># --- usage: set up prototypes once, at startup (expensive step happens here) ---</span>
+registry = TemplateRegistry()
+registry.register(<span class="hljs-string">&quot;standard&quot;</span>, Invoice(
+    template_name=<span class="hljs-string">&quot;standard&quot;</span>,
+    line_items=[<span class="hljs-string">&quot;Subtotal&quot;</span>, <span class="hljs-string">&quot;Tax&quot;</span>, <span class="hljs-string">&quot;Total&quot;</span>],
+    tax_rate=<span class="hljs-number">0.08</span>,
+    footer_note=<span class="hljs-string">&quot;Thank you for your business.&quot;</span>,
+))
+
+<span class="hljs-comment"># --- usage: every new invoice is a cheap clone, then customized ---</span>
+invoice_1 = registry.create(<span class="hljs-string">&quot;standard&quot;</span>)
+invoice_1.line_items.append(<span class="hljs-string">&quot;Rush shipping fee&quot;</span>)
+
+invoice_2 = registry.create(<span class="hljs-string">&quot;standard&quot;</span>)
+<span class="hljs-keyword">assert</span> <span class="hljs-string">&quot;Rush shipping fee&quot;</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> invoice_2.line_items  <span class="hljs-comment"># deep copy prevented cross-contamination</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.ArrayList;
+<span class="hljs-keyword">import</span> java.util.HashMap;
+<span class="hljs-keyword">import</span> java.util.List;
+<span class="hljs-keyword">import</span> java.util.Map;
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Invoice</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Cloneable</span> {
+    String templateName;
+    List&lt;String&gt; lineItems;
+    <span class="hljs-type">double</span> taxRate;
+    String footerNote;
+
+    Invoice(String templateName, List&lt;String&gt; lineItems, <span class="hljs-type">double</span> taxRate, String footerNote) {
+        <span class="hljs-built_in">this</span>.templateName = templateName;
+        <span class="hljs-built_in">this</span>.lineItems = lineItems;
+        <span class="hljs-built_in">this</span>.taxRate = taxRate;
+        <span class="hljs-built_in">this</span>.footerNote = footerNote;
+    }
+
+    <span class="hljs-meta">@Override</span>
+    <span class="hljs-keyword">public</span> Invoice <span class="hljs-title function_">clone</span><span class="hljs-params">()</span> {
+        <span class="hljs-comment">// Deep copy: mutable fields (lineItems) must not be shared with the prototype.</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Invoice</span>(templateName, <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(lineItems), taxRate, footerNote);
+    }
+}
+
+<span class="hljs-comment">// Holds one expensive, fully-configured prototype per template name.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TemplateRegistry</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, Invoice&gt; prototypes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">register</span><span class="hljs-params">(String name, Invoice prototype)</span> {
+        prototypes.put(name, prototype);
+    }
+
+    Invoice <span class="hljs-title function_">create</span><span class="hljs-params">(String name)</span> {
+        <span class="hljs-type">Invoice</span> <span class="hljs-variable">prototype</span> <span class="hljs-operator">=</span> prototypes.get(name);
+        <span class="hljs-keyword">if</span> (prototype == <span class="hljs-literal">null</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;No template registered as &#x27;&quot;</span> + name + <span class="hljs-string">&quot;&#x27;&quot;</span>);
+        <span class="hljs-keyword">return</span> prototype.clone(); <span class="hljs-comment">// cheap: copy, not rebuild</span>
+    }
+}
+
+<span class="hljs-comment">// --- usage: set up prototypes once, at startup (expensive step happens here) ---</span>
+<span class="hljs-comment">// TemplateRegistry registry = new TemplateRegistry();</span>
+<span class="hljs-comment">// registry.register(&quot;standard&quot;, new Invoice(&quot;standard&quot;,</span>
+<span class="hljs-comment">//     List.of(&quot;Subtotal&quot;, &quot;Tax&quot;, &quot;Total&quot;), 0.08, &quot;Thank you for your business.&quot;));</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// --- usage: every new invoice is a cheap clone, then customized ---</span>
+<span class="hljs-comment">// Invoice invoice1 = registry.create(&quot;standard&quot;);</span>
+<span class="hljs-comment">// invoice1.lineItems.add(&quot;Rush shipping fee&quot;);</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// Invoice invoice2 = registry.create(&quot;standard&quot;);</span>
+<span class="hljs-comment">// assert !invoice2.lineItems.contains(&quot;Rush shipping fee&quot;); // deep copy prevented cross-contamination</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Java has a built-in (if famously awkward) <code>Cloneable</code>/<code>clone()</code> mechanism, but most real Java
+codebases skip it in favor of an explicit copy constructor or a manual <code>clone()</code> override like the one above, exactly
+to sidestep <code>Cloneable</code>’s shallow-copy-by-default pitfalls. Python’s <code>copy.deepcopy</code> handles nested mutable
+structures recursively and correctly by default, which is why Prototype tends to be less ceremony in Python.</p>
+<h2>Real-world example</h2>
+<p>IDE “project templates” and design-tool “starting layouts” (a new Figma file from a template, a new repository from
+a GitHub template repo) are Prototype in the wild: an expensive-to-assemble starting point is cloned rather than
+rebuilt from scratch for every new instance.</p>
+<h2>Advantages and tradeoffs</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Advantages</h4>
+<ul>
+<li>Avoids repeating expensive construction logic for every new instance</li>
+<li>New "kinds" of object can be added at runtime by registering a new prototype — no factory code changes needed</li>
+<li>Captures a fully-configured state (including runtime-computed defaults) that a constructor alone might not easily reproduce</li>
+</ul>
+</div>
+<div>
+<h4>❌ Tradeoffs</h4>
+<ul>
+<li>Deep-copy correctness is easy to get wrong for complex object graphs (circular references, external resource handles)</li>
+<li>Cloning an object doesn't re-run its original construction/validation logic, which can hide bugs if the prototype itself is ever misconfigured</li>
+</ul>
+</div>
+</div>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>If you propose Prototype, immediately mention deep vs. shallow copy — interviewers use this pattern specifically to
+probe whether you understand that distinction.</p>
+</div>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/creational/builder/">Builder</a> — an alternative when the “expensive” part is <em>assembly logic</em> rather than the raw cost of allocation; Prototype instead reuses an already-assembled instance.</li>
+<li><a href="/lld-patterns-hub/creational/singleton/">Singleton</a> — the opposite instinct: Singleton insists on exactly one instance, Prototype exists specifically to make new instances cheap.</li>
+<li><a href="/lld-patterns-hub/fundamentals/immutability/">Immutability</a> — an immutable prototype removes the shallow-copy risk entirely, since there’s nothing mutable to accidentally share.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/creational/builder/"><div class="dir">← Previous</div><div>Builder</div></a>
+<span></span>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

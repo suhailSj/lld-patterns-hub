@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Command · LLD Patterns Hub</title>
+<meta name="description" content="Turn a request into a standalone object, so it can be queued, logged, undone, or executed later." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Command · LLD Patterns Hub" />
+<meta property="og:description" content="Turn a request into a standalone object, so it can be queued, logged, undone, or executed later." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/" aria-current="page">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Behavioral Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Behavioral Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a></li>
+<li><a href="/lld-patterns-hub/behavioral/observer/">Observer</a></li>
+<li><a href="/lld-patterns-hub/behavioral/command/" aria-current="page">Command</a></li>
+<li><a href="/lld-patterns-hub/behavioral/state/">State</a></li>
+<li><a href="/lld-patterns-hub/behavioral/chain-of-responsibility/">Chain of Responsibility</a></li>
+<li><a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a></li>
+<li><a href="/lld-patterns-hub/behavioral/iterator/">Iterator</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/behavioral/">Behavioral Patterns</a> / Command</p>
+
+    <article class="prose">
+      <h1>Command</h1>
+      <div class="pattern-meta"><span class="tag">Behavioral</span><span class="tag">GoF</span><span class="tag">document editor</span></div>
+      <p class="summary-lede">Turn a request into a standalone object, so it can be queued, logged, undone, or executed later.</p>
+<h2>Problem statement</h2>
+<p>A text document editor needs undo/redo for actions like “insert text” and “delete text.” If <code>TextDocument</code> just
+mutates its own content directly, there’s no record of <em>what happened</em> to reverse it.</p>
+<h2>Core idea</h2>
+<p>Wrap every editing action in a <code>Command</code> object with <code>execute()</code> and <code>undo()</code> methods. Instead of the editor calling
+<code>document.insert(...)</code> directly, it creates an <code>InsertTextCommand</code>, executes it, and pushes it onto a history stack.
+Undo pops the last command and calls its <code>undo()</code>.</p>
+<h2>Real-world analogy</h2>
+<p>A restaurant order ticket is a Command: the waiter (invoker) doesn’t cook — they hand a ticket (the command object)
+to the kitchen (receiver). The same ticket format lets orders be queued, reordered, or handed to any available chef,
+and a cancelled order is just “don’t execute this ticket” without the waiter needing to know how to un-cook a dish.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>      «interface»
+       Command
+    + execute()
+    + undo()
+           ▲
+   ┌───────┼─────────┐
+InsertTextCommand   DeleteTextCommand
+
+TextDocument (the &quot;receiver&quot; — knows how to actually mutate content)
+
+EditorHistory
+  - stack: list[Command]
+  + run(command)      ─▶ command.execute(); stack.append(command)
+  + undo_last()        ─▶ stack.pop().undo()
+</code></pre>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">TextDocument</span>:
+    <span class="hljs-string">&quot;&quot;&quot;The receiver: knows how to actually mutate content.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>.content = <span class="hljs-string">&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">insert</span>(<span class="hljs-params">self, text: <span class="hljs-built_in">str</span>, position: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>.content = <span class="hljs-variable language_">self</span>.content[:position] + text + <span class="hljs-variable language_">self</span>.content[position:]
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">delete</span>(<span class="hljs-params">self, position: <span class="hljs-built_in">int</span>, length: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+        removed = <span class="hljs-variable language_">self</span>.content[position:position + length]
+        <span class="hljs-variable language_">self</span>.content = <span class="hljs-variable language_">self</span>.content[:position] + <span class="hljs-variable language_">self</span>.content[position + length:]
+        <span class="hljs-keyword">return</span> removed
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Command</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">execute</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">undo</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">InsertTextCommand</span>(<span class="hljs-title class_ inherited__">Command</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, document: TextDocument, text: <span class="hljs-built_in">str</span>, position: <span class="hljs-built_in">int</span></span>):
+        <span class="hljs-variable language_">self</span>._document = document
+        <span class="hljs-variable language_">self</span>._text = text
+        <span class="hljs-variable language_">self</span>._position = position
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">execute</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._document.insert(<span class="hljs-variable language_">self</span>._text, <span class="hljs-variable language_">self</span>._position)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">undo</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._document.delete(<span class="hljs-variable language_">self</span>._position, <span class="hljs-built_in">len</span>(<span class="hljs-variable language_">self</span>._text))
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EditorHistory</span>:
+    <span class="hljs-string">&quot;&quot;&quot;The invoker: runs commands and keeps a stack so they can be undone.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>._history: <span class="hljs-built_in">list</span>[Command] = []
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">run</span>(<span class="hljs-params">self, command: Command</span>) -&gt; <span class="hljs-literal">None</span>:
+        command.execute()
+        <span class="hljs-variable language_">self</span>._history.append(command)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">undo_last</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._history:
+            <span class="hljs-variable language_">self</span>._history.pop().undo()
+
+<span class="hljs-comment"># --- usage ---</span>
+doc = TextDocument()
+history = EditorHistory()
+
+history.run(InsertTextCommand(doc, <span class="hljs-string">&quot;Hello, &quot;</span>, <span class="hljs-number">0</span>))
+history.run(InsertTextCommand(doc, <span class="hljs-string">&quot;world!&quot;</span>, <span class="hljs-number">7</span>))
+<span class="hljs-built_in">print</span>(doc.content)   <span class="hljs-comment"># &quot;Hello, world!&quot;</span>
+
+history.undo_last()
+<span class="hljs-built_in">print</span>(doc.content)   <span class="hljs-comment"># &quot;Hello, &quot;</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">class</span> <span class="hljs-title class_">TextDocument</span> {
+    <span class="hljs-comment">// The receiver: knows how to actually mutate content.</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-type">StringBuilder</span> <span class="hljs-variable">content</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringBuilder</span>();
+
+    String <span class="hljs-title function_">getContent</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> content.toString(); }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">insert</span><span class="hljs-params">(String text, <span class="hljs-type">int</span> position)</span> {
+        content.insert(position, text);
+    }
+
+    String <span class="hljs-title function_">delete</span><span class="hljs-params">(<span class="hljs-type">int</span> position, <span class="hljs-type">int</span> length)</span> {
+        <span class="hljs-type">String</span> <span class="hljs-variable">removed</span> <span class="hljs-operator">=</span> content.substring(position, position + length);
+        content.delete(position, position + length);
+        <span class="hljs-keyword">return</span> removed;
+    }
+}
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">Command</span> {
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">execute</span><span class="hljs-params">()</span>;
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">undo</span><span class="hljs-params">()</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">InsertTextCommand</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Command</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> TextDocument document;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String text;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">int</span> position;
+
+    InsertTextCommand(TextDocument document, String text, <span class="hljs-type">int</span> position) {
+        <span class="hljs-built_in">this</span>.document = document;
+        <span class="hljs-built_in">this</span>.text = text;
+        <span class="hljs-built_in">this</span>.position = position;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">execute</span><span class="hljs-params">()</span> { document.insert(text, position); }
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">undo</span><span class="hljs-params">()</span> { document.delete(position, text.length()); }
+}
+
+<span class="hljs-comment">// The invoker: runs commands and keeps a stack so they can be undone.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EditorHistory</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> java.util.Deque&lt;Command&gt; history = <span class="hljs-keyword">new</span> <span class="hljs-title class_">java</span>.util.ArrayDeque&lt;&gt;();
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">run</span><span class="hljs-params">(Command command)</span> {
+        command.execute();
+        history.push(command);
+    }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">undoLast</span><span class="hljs-params">()</span> {
+        <span class="hljs-keyword">if</span> (!history.isEmpty()) {
+            history.pop().undo();
+        }
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// TextDocument doc = new TextDocument();</span>
+<span class="hljs-comment">// EditorHistory history = new EditorHistory();</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// history.run(new InsertTextCommand(doc, &quot;Hello, &quot;, 0));</span>
+<span class="hljs-comment">// history.run(new InsertTextCommand(doc, &quot;world!&quot;, 7));</span>
+<span class="hljs-comment">// System.out.println(doc.getContent());  // &quot;Hello, world!&quot;</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// history.undoLast();</span>
+<span class="hljs-comment">// System.out.println(doc.getContent());  // &quot;Hello, &quot;</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Python can often skip the formal <code>Command</code> class for simple, non-undoable actions by passing
+around bound functions/closures (functions are first-class), but undo/redo specifically needs state (what to
+reverse), which is exactly what a full command object captures cleanly in both languages. Java’s <code>Deque</code> as a stack
+(<code>push</code>/<code>pop</code>) mirrors Python’s list used as a stack (<code>append</code>/<code>pop</code>).</p>
+<h2>How to identify when to use it</h2>
+<p>You need any of: undo/redo, a queue of pending actions (job queues, task schedulers), an audit log of “what
+happened” independent of when it ran, or the ability to hand off “what to do” to code that shouldn’t know how to do
+it (a UI button that triggers a command without knowing its implementation).</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Decouples the invoker (a button, a history stack) from the receiver (the actual logic)</li>
+<li>Naturally supports undo/redo, queuing, and logging, since a command is just an object you can store</li>
+<li>New actions are added as new command classes, without touching the invoker</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>One class per action can feel like a lot of boilerplate for simple, non-undoable operations</li>
+<li>Implementing correct <code>undo()</code> for complex, stateful operations can be genuinely hard (what if something else changed the document in between?)</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Undo/redo, transaction logs, task queues, or macro recording (replaying a sequence of user actions).</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>Simple, one-off actions with no need for undo, queuing, or logging don’t need to be wrapped in command objects —
+a direct method call is clearer.</li>
+</ul>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>If asked to design undo/redo for anything (a text editor, a drawing app, a form wizard), Command is almost always the
+expected answer — pair it with a history stack, exactly as shown above.</p>
+</div>
+<h2>Interview talking points</h2>
+<ul>
+<li>Emphasize the three roles by name: invoker (triggers execution), command (encapsulates the request), receiver
+(does the real work) — interviewers often ask you to point out which class plays which role.</li>
+<li>Mention that Command objects are naturally serializable, which is why they show up in task queues and
+distributed job systems, not just UI undo stacks.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/behavioral/observer/">Observer</a> — commands are sometimes dispatched in response to an observed event.</li>
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a> — both wrap behavior in an object, but Strategy is chosen once per operation to vary an algorithm; Command represents a single discrete action, often stored for later/undo.</li>
+<li><a href="/lld-patterns-hub/behavioral/chain-of-responsibility/">Chain of Responsibility</a> — can be combined with Command to route a command to whichever handler is able to process it.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/behavioral/observer/"><div class="dir">← Previous</div><div>Observer</div></a>
+<a href="/lld-patterns-hub/behavioral/state/" class="to-next"><div class="dir">Next →</div><div>State</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

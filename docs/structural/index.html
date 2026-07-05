@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Structural Patterns · LLD Patterns Hub</title>
+<meta name="description" content="Patterns for composing classes and objects into larger structures: Adapter, Decorator, Facade, Composite, Proxy, Bridge." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Structural Patterns · LLD Patterns Hub" />
+<meta property="og:description" content="Patterns for composing classes and objects into larger structures: Adapter, Decorator, Facade, Composite, Proxy, Bridge." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/" aria-current="page">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell no-sidebar">
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / Structural Patterns</p>
+    <h1>🧩 Structural Patterns</h1>
+    <p class="summary-lede">Patterns for composing classes and objects into larger structures: Adapter, Decorator, Facade, Composite, Proxy, Bridge.</p>
+    <input class="filter-box" type="search" placeholder="Filter structural patterns..." data-filter-target=".card-grid .card" aria-label="Filter Structural Patterns" />
+    <div class="card-grid">
+<a class="card" href="/lld-patterns-hub/structural/adapter/" data-search="adapter convert the interface of a class into another interface clients expect, letting incompatible interfaces work together. structural gof payment processing">
+  <h3>Adapter</h3>
+  <p>Convert the interface of a class into another interface clients expect, letting incompatible interfaces work together.</p>
+  <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">payment processing</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/structural/decorator/" data-search="decorator attach additional responsibilities to an object dynamically, without altering its interface or subclassing every combination. structural gof notification systems">
+  <h3>Decorator</h3>
+  <p>Attach additional responsibilities to an object dynamically, without altering its interface or subclassing every combination.</p>
+  <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">notification systems</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/structural/facade/" data-search="facade provide a single, simplified interface to a complex subsystem made of many interacting parts. structural gof order processing">
+  <h3>Facade</h3>
+  <p>Provide a single, simplified interface to a complex subsystem made of many interacting parts.</p>
+  <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">order processing</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/structural/composite/" data-search="composite compose objects into tree structures and let clients treat individual objects and groups of objects uniformly. structural gof file systems">
+  <h3>Composite</h3>
+  <p>Compose objects into tree structures and let clients treat individual objects and groups of objects uniformly.</p>
+  <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">file systems</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/structural/proxy/" data-search="proxy provide a stand-in for another object to control access to it — for lazy loading, caching, or permission checks. structural gof access control">
+  <h3>Proxy</h3>
+  <p>Provide a stand-in for another object to control access to it — for lazy loading, caching, or permission checks.</p>
+  <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">access control</span></div>
+</a>
+<a class="card" href="/lld-patterns-hub/structural/bridge/" data-search="bridge decouple an abstraction from its implementation so the two can vary and evolve independently. structural gof notification systems">
+  <h3>Bridge</h3>
+  <p>Decouple an abstraction from its implementation so the two can vary and evolve independently.</p>
+  <div class="pattern-meta"><span class="tag">Structural</span><span class="tag">GoF</span><span class="tag">notification systems</span></div>
+</a>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

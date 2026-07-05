@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Abstraction, Encapsulation & Polymorphism · LLD Patterns Hub</title>
+<meta name="description" content="The three pillars underneath every pattern on this site, grounded in one running media-player example." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Abstraction, Encapsulation & Polymorphism · LLD Patterns Hub" />
+<meta property="og:description" content="The three pillars underneath every pattern on this site, grounded in one running media-player example." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/" aria-current="page">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 LLD Fundamentals</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>LLD Fundamentals</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/oop-pillars/" aria-current="page">Abstraction, Encapsulation & Polymorphism</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/">Interfaces vs. Abstract Classes</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/immutability/">Immutability</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/">Cohesion and Coupling</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interview-tips/">Common LLD Interview Tips</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/fundamentals/">LLD Fundamentals</a> / Abstraction, Encapsulation & Polymorphism</p>
+
+    <article class="prose">
+      <h1>Abstraction, Encapsulation & Polymorphism</h1>
+      <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">OOP</span><span class="tag">media player</span></div>
+      <p class="summary-lede">The three pillars underneath every pattern on this site, grounded in one running media-player example.</p>
+<h2>Intent / definition</h2>
+<p>Three ideas get grouped together as “the pillars of OOP” (a fourth, inheritance, is covered on its own in
+<a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a>):</p>
+<ul>
+<li><strong>Abstraction</strong> — expose <em>what</em> something does, hide <em>how</em>. Callers depend on a simple interface, not internal detail.</li>
+<li><strong>Encapsulation</strong> — bundle data with the methods that operate on it, and control access so internal state can’t be
+put into an invalid condition from outside.</li>
+<li><strong>Polymorphism</strong> — different concrete types can be used interchangeably through a shared interface, each responding
+to the same call in its own way.</li>
+</ul>
+<p>These aren’t independent — they reinforce each other, as the example below shows.</p>
+<h2>Problem statement</h2>
+<p>A media player needs to support audio and video playback. Client code (a play/pause UI) should work identically
+regardless of what’s loaded, internal buffering state shouldn’t be corruptible from outside the class, and adding a
+new media type shouldn’t require changing the UI code.</p>
+<h2>Why skipping these fails</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 What it looks like without the pillars</div>
+<p>Without abstraction, UI code would need <code>if media_type == &quot;audio&quot;: ... elif media_type == &quot;video&quot;: ...</code> everywhere
+playback is triggered. Without encapsulation, any code anywhere could set <code>player.buffer_position = -400</code>, an
+invalid state, since nothing guards it. Without polymorphism, adding a new media type (a livestream) means editing
+every <code>if/elif</code> chain across the codebase instead of adding one new class.</p>
+</div>
+<h2>Solution overview</h2>
+<ul>
+<li><strong>Abstraction:</strong> define a <code>MediaPlayer</code> interface with <code>play()</code>/<code>pause()</code>. Callers depend only on that.</li>
+<li><strong>Encapsulation:</strong> keep buffering state (<code>_buffer_position</code>) private, expose it only through validated methods.</li>
+<li><strong>Polymorphism:</strong> <code>AudioPlayer</code> and <code>VideoPlayer</code> both implement <code>MediaPlayer</code>; a <code>List[MediaPlayer]</code> can hold both,
+and calling <code>.play()</code> on each does the right thing for its type without the caller checking which one it is.</li>
+</ul>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">MediaPlayer</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Abstraction: callers depend on this interface, not on AudioPlayer/VideoPlayer directly.&quot;&quot;&quot;</span>
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">play</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pause</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AudioPlayer</span>(<span class="hljs-title class_ inherited__">MediaPlayer</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, track_name: <span class="hljs-built_in">str</span></span>):
+        <span class="hljs-variable language_">self</span>.track_name = track_name
+        <span class="hljs-variable language_">self</span>._buffer_position = <span class="hljs-number">0</span>  <span class="hljs-comment"># &quot;private&quot; by convention (leading underscore)</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">play</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Playing audio: <span class="hljs-subst">{self.track_name}</span> from <span class="hljs-subst">{self._buffer_position}</span>s&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pause</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Paused audio at <span class="hljs-subst">{self._buffer_position}</span>s&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">seek</span>(<span class="hljs-params">self, seconds: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-comment"># Encapsulation: the only way to change _buffer_position — validates the input.</span>
+        <span class="hljs-keyword">if</span> seconds &lt; <span class="hljs-number">0</span>:
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Cannot seek to a negative position&quot;</span>)
+        <span class="hljs-variable language_">self</span>._buffer_position = seconds
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">VideoPlayer</span>(<span class="hljs-title class_ inherited__">MediaPlayer</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, title: <span class="hljs-built_in">str</span></span>):
+        <span class="hljs-variable language_">self</span>.title = title
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">play</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Playing video: <span class="hljs-subst">{self.title}</span> (with subtitles loaded)&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pause</span>(<span class="hljs-params">self</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Paused video: <span class="hljs-subst">{self.title}</span>&quot;</span>)
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">play_all</span>(<span class="hljs-params">players: <span class="hljs-built_in">list</span>[MediaPlayer]</span>) -&gt; <span class="hljs-literal">None</span>:
+    <span class="hljs-comment"># Polymorphism: same call, different behavior per concrete type — no isinstance checks needed.</span>
+    <span class="hljs-keyword">for</span> player <span class="hljs-keyword">in</span> players:
+        player.play()
+
+<span class="hljs-comment"># --- usage ---</span>
+play_all([AudioPlayer(<span class="hljs-string">&quot;Bach - Cello Suite No.1&quot;</span>), VideoPlayer(<span class="hljs-string">&quot;Conference Keynote&quot;</span>)])
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">MediaPlayer</span> {
+    <span class="hljs-comment">// Abstraction: callers depend on this interface, not on AudioPlayer/VideoPlayer directly.</span>
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">play</span><span class="hljs-params">()</span>;
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">pause</span><span class="hljs-params">()</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AudioPlayer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">MediaPlayer</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String trackName;
+    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> <span class="hljs-variable">bufferPosition</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; <span class="hljs-comment">// private: encapsulated, not directly settable from outside</span>
+
+    AudioPlayer(String trackName) { <span class="hljs-built_in">this</span>.trackName = trackName; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">play</span><span class="hljs-params">()</span> {
+        System.out.println(<span class="hljs-string">&quot;Playing audio: &quot;</span> + trackName + <span class="hljs-string">&quot; from &quot;</span> + bufferPosition + <span class="hljs-string">&quot;s&quot;</span>);
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">pause</span><span class="hljs-params">()</span> {
+        System.out.println(<span class="hljs-string">&quot;Paused audio at &quot;</span> + bufferPosition + <span class="hljs-string">&quot;s&quot;</span>);
+    }
+
+    <span class="hljs-comment">// Encapsulation: the only way to change bufferPosition — validates the input.</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">seek</span><span class="hljs-params">(<span class="hljs-type">int</span> seconds)</span> {
+        <span class="hljs-keyword">if</span> (seconds &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;Cannot seek to a negative position&quot;</span>);
+        <span class="hljs-built_in">this</span>.bufferPosition = seconds;
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">VideoPlayer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">MediaPlayer</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String title;
+    VideoPlayer(String title) { <span class="hljs-built_in">this</span>.title = title; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">play</span><span class="hljs-params">()</span> {
+        System.out.println(<span class="hljs-string">&quot;Playing video: &quot;</span> + title + <span class="hljs-string">&quot; (with subtitles loaded)&quot;</span>);
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">pause</span><span class="hljs-params">()</span> {
+        System.out.println(<span class="hljs-string">&quot;Paused video: &quot;</span> + title);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PlaylistTools</span> {
+    <span class="hljs-comment">// Polymorphism: same call, different behavior per concrete type — no instanceof checks needed.</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">playAll</span><span class="hljs-params">(java.util.List&lt;MediaPlayer&gt; players)</span> {
+        <span class="hljs-keyword">for</span> (MediaPlayer player : players) player.play();
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// PlaylistTools.playAll(List.of(new AudioPlayer(&quot;Bach - Cello Suite No.1&quot;), new VideoPlayer(&quot;Conference Keynote&quot;)));</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Java enforces encapsulation with real access modifiers (<code>private</code> genuinely blocks outside
+access, checked by the compiler). Python’s leading underscore (<code>_buffer_position</code>) is a <em>convention</em>, not enforced —
+any code can still technically set <code>player._buffer_position = -400</code> directly. Python does have “name mangling” with
+double-underscore prefixes (<code>__buffer_position</code>) for a slightly stronger (still not absolute) form of privacy, but
+the community norm is to trust the underscore convention rather than fight the language.</p>
+<h2>Real-world example</h2>
+<p>A car’s pedals are abstraction and encapsulation in the physical world: pressing the accelerator doesn’t require
+understanding fuel injection timing (abstraction), and you can’t reach in and directly manipulate the engine’s
+internals through the pedal (encapsulation). Polymorphism shows up whenever code works uniformly across different
+drivers — cruise control works the same way whether the “engine” underneath is a gas engine or an electric motor.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Abstraction reduces what callers need to know to use a class correctly</li>
+<li>Encapsulation prevents invalid internal states, localizing validation logic</li>
+<li>Polymorphism lets new types be added without touching code that already works with the shared interface</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Over-applying abstraction ("everything needs an interface") adds indirection without payoff for genuinely simple, stable code</li>
+<li>Excessive encapsulation (getters/setters for every field with no real invariant to protect) is ceremony without benefit</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Abstraction: whenever client code shouldn’t need to know which concrete implementation it’s using.</li>
+<li>Encapsulation: whenever a class has internal state with rules about what’s valid (ranges, required combinations,
+ordering).</li>
+<li>Polymorphism: whenever the same operation needs to behave differently depending on runtime type.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>Don’t wrap a field in a getter/setter pair “for encapsulation” if there’s no actual invariant to protect — a public
+field is fine for a plain data holder with no rules.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>Ground each pillar in a concrete example rather than reciting the definition — interviewers consistently reward
+“here’s what breaks without it” over dictionary answers.</li>
+<li>Be ready to say which pillar a given design choice demonstrates when reviewing someone else’s (or your own) code in
+an interview.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li>Nearly every pattern on this site is an application of one or more of these pillars — <a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a> and <a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a> lean heavily on polymorphism; <a href="/lld-patterns-hub/fundamentals/immutability/">Immutability</a> and <a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/">Cohesion and Coupling</a> build on encapsulation.</li>
+<li><a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/">Interfaces vs. Abstract Classes</a> — the concrete mechanisms languages provide for abstraction.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/"><div class="dir">← Previous</div><div>Composition vs. Inheritance</div></a>
+<a href="/lld-patterns-hub/fundamentals/dependency-injection/" class="to-next"><div class="dir">Next →</div><div>Dependency Injection</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

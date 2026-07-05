@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Observer · LLD Patterns Hub</title>
+<meta name="description" content="Define a one-to-many dependency so that when one object changes state, all its dependents are notified automatically." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Observer · LLD Patterns Hub" />
+<meta property="og:description" content="Define a one-to-many dependency so that when one object changes state, all its dependents are notified automatically." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/" aria-current="page">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Behavioral Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Behavioral Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a></li>
+<li><a href="/lld-patterns-hub/behavioral/observer/" aria-current="page">Observer</a></li>
+<li><a href="/lld-patterns-hub/behavioral/command/">Command</a></li>
+<li><a href="/lld-patterns-hub/behavioral/state/">State</a></li>
+<li><a href="/lld-patterns-hub/behavioral/chain-of-responsibility/">Chain of Responsibility</a></li>
+<li><a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a></li>
+<li><a href="/lld-patterns-hub/behavioral/iterator/">Iterator</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/behavioral/">Behavioral Patterns</a> / Observer</p>
+
+    <article class="prose">
+      <h1>Observer</h1>
+      <div class="pattern-meta"><span class="tag">Behavioral</span><span class="tag">GoF</span><span class="tag">order processing</span></div>
+      <p class="summary-lede">Define a one-to-many dependency so that when one object changes state, all its dependents are notified automatically.</p>
+<h2>Problem statement</h2>
+<p>When an order’s status changes (placed → shipped → delivered), several unrelated parts of the system need to react:
+send the customer an email, update the analytics dashboard, and notify the warehouse system. The <code>Order</code> class
+shouldn’t need to import and call all three directly — that list of “who cares about this” will keep growing.</p>
+<h2>Core idea</h2>
+<p><code>Order</code> (the <strong>subject</strong>) keeps a list of <strong>observers</strong> — anything implementing a simple <code>on_status_changed(order)</code>
+interface — and notifies all of them whenever its status changes, without knowing what any of them actually do.
+Observers subscribe and unsubscribe independently; <code>Order</code> never changes when a new observer type is added.</p>
+<h2>Real-world analogy</h2>
+<p>A YouTube channel (the subject) has subscribers (observers). When the channel uploads a new video, every subscriber
+is notified — the channel doesn’t maintain a special-cased list of “email this person, push-notify that person”; it
+just notifies whoever is currently subscribed, generically.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>Order (subject)
+  - observers: list[OrderObserver]
+  + subscribe(observer)
+  + set_status(new_status)  ──▶ notifies all observers
+
+      «interface»
+     OrderObserver
+   + on_status_changed(order)
+           ▲
+   ┌───────┼─────────┐
+EmailObserver   AnalyticsObserver   WarehouseObserver
+</code></pre>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderObserver</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">on_status_changed</span>(<span class="hljs-params">self, order: <span class="hljs-string">&quot;Order&quot;</span></span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EmailObserver</span>(<span class="hljs-title class_ inherited__">OrderObserver</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">on_status_changed</span>(<span class="hljs-params">self, order: <span class="hljs-string">&quot;Order&quot;</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[email] Order <span class="hljs-subst">{order.order_id}</span> is now <span class="hljs-subst">{order.status}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AnalyticsObserver</span>(<span class="hljs-title class_ inherited__">OrderObserver</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">on_status_changed</span>(<span class="hljs-params">self, order: <span class="hljs-string">&quot;Order&quot;</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[analytics] recording status change to <span class="hljs-subst">{order.status}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">WarehouseObserver</span>(<span class="hljs-title class_ inherited__">OrderObserver</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">on_status_changed</span>(<span class="hljs-params">self, order: <span class="hljs-string">&quot;Order&quot;</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">if</span> order.status == <span class="hljs-string">&quot;PAID&quot;</span>:
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;[warehouse] begin picking items&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Order</span>:
+    <span class="hljs-string">&quot;&quot;&quot;The subject. Knows nothing about email, analytics, or the warehouse.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, order_id: <span class="hljs-built_in">str</span></span>):
+        <span class="hljs-variable language_">self</span>.order_id = order_id
+        <span class="hljs-variable language_">self</span>.status = <span class="hljs-string">&quot;PLACED&quot;</span>
+        <span class="hljs-variable language_">self</span>._observers: <span class="hljs-built_in">list</span>[OrderObserver] = []
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">subscribe</span>(<span class="hljs-params">self, observer: OrderObserver</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._observers.append(observer)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">unsubscribe</span>(<span class="hljs-params">self, observer: OrderObserver</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._observers.remove(observer)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">set_status</span>(<span class="hljs-params">self, new_status: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>.status = new_status
+        <span class="hljs-keyword">for</span> observer <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>._observers:
+            observer.on_status_changed(<span class="hljs-variable language_">self</span>)
+
+<span class="hljs-comment"># --- usage ---</span>
+order = Order(<span class="hljs-string">&quot;ORD-1&quot;</span>)
+order.subscribe(EmailObserver())
+order.subscribe(AnalyticsObserver())
+order.subscribe(WarehouseObserver())
+
+order.set_status(<span class="hljs-string">&quot;PAID&quot;</span>)  <span class="hljs-comment"># all three observers react, independently</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.ArrayList;
+<span class="hljs-keyword">import</span> java.util.List;
+
+<span class="hljs-keyword">interface</span> <span class="hljs-title class_">OrderObserver</span> {
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">onStatusChanged</span><span class="hljs-params">(Order order)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EmailObserver</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">OrderObserver</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">onStatusChanged</span><span class="hljs-params">(Order order)</span> {
+        System.out.println(<span class="hljs-string">&quot;[email] Order &quot;</span> + order.orderId + <span class="hljs-string">&quot; is now &quot;</span> + order.status);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AnalyticsObserver</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">OrderObserver</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">onStatusChanged</span><span class="hljs-params">(Order order)</span> {
+        System.out.println(<span class="hljs-string">&quot;[analytics] recording status change to &quot;</span> + order.status);
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">WarehouseObserver</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">OrderObserver</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">onStatusChanged</span><span class="hljs-params">(Order order)</span> {
+        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;PAID&quot;</span>.equals(order.status)) {
+            System.out.println(<span class="hljs-string">&quot;[warehouse] begin picking items&quot;</span>);
+        }
+    }
+}
+
+<span class="hljs-comment">// The subject. Knows nothing about email, analytics, or the warehouse.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Order</span> {
+    <span class="hljs-keyword">final</span> String orderId;
+    <span class="hljs-type">String</span> <span class="hljs-variable">status</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;PLACED&quot;</span>;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> List&lt;OrderObserver&gt; observers = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();
+
+    Order(String orderId) { <span class="hljs-built_in">this</span>.orderId = orderId; }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">subscribe</span><span class="hljs-params">(OrderObserver observer)</span> { observers.add(observer); }
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">unsubscribe</span><span class="hljs-params">(OrderObserver observer)</span> { observers.remove(observer); }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">setStatus</span><span class="hljs-params">(String newStatus)</span> {
+        <span class="hljs-built_in">this</span>.status = newStatus;
+        <span class="hljs-keyword">for</span> (OrderObserver observer : observers) {
+            observer.onStatusChanged(<span class="hljs-built_in">this</span>);
+        }
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// Order order = new Order(&quot;ORD-1&quot;);</span>
+<span class="hljs-comment">// order.subscribe(new EmailObserver());</span>
+<span class="hljs-comment">// order.subscribe(new AnalyticsObserver());</span>
+<span class="hljs-comment">// order.subscribe(new WarehouseObserver());</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// order.setStatus(&quot;PAID&quot;); // all three observers react, independently</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> both versions use a plain list of observer objects and a synchronous notify loop — the simplest,
+most common form. Real frameworks often add richer variants: Java’s ecosystem favors typed event buses
+(<code>ApplicationEventPublisher</code> in Spring) or <code>PropertyChangeSupport</code>; Python frequently uses lightweight pub/sub
+libraries or <code>asyncio</code> event patterns for the same idea at scale, but the core relationship (subject notifies a list
+of independently-registered observers) stays the same.</p>
+<h2>How to identify when to use it</h2>
+<p>You’re writing (or about to write) a method that, after doing its main job, calls several unrelated pieces of code
+“because they need to know this happened.” If that list of unrelated calls keeps growing every quarter, Observer
+lets new reactions be added by registering a new observer instead of editing the subject.</p>
+<div class="callout warn">
+<div class="callout-title">⚠️ Watch for silent failures and ordering assumptions</div>
+<p>If one observer throws an exception, should the rest still run? Should observers execute in a guaranteed order? The
+naive synchronous loop above doesn’t answer these — decide explicitly (e.g. catch-and-log per observer) rather than
+letting one broken observer silently block the others.</p>
+</div>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Subject and observers are loosely coupled — the subject only depends on a small interface</li>
+<li>New reactions to an event are added by registering a new observer, not editing the subject</li>
+<li>Observers can be added/removed dynamically at runtime</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Notification order and failure handling need explicit design — easy to get wrong by default</li>
+<li>Can make control flow harder to trace ("who actually runs when this happens?") without good tooling/logging</li>
+<li>Risk of memory leaks if observers subscribe but are never unsubscribed (common in long-lived UI code)</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Several independent parts of a system must react to the same event, and you want to add/remove reactions without
+modifying the event source.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>If there’s exactly one reaction and it will likely stay that way, a direct method call is simpler and easier to
+trace than the indirection of Observer.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>Observer is the foundation of most event-driven and reactive systems (UI event listeners, pub/sub message queues,
+reactive streams) — mentioning that breadth shows you see the pattern beyond the textbook example.</li>
+<li>Be ready to discuss failure isolation (one observer’s exception shouldn’t silently break the others) and whether
+notification should be synchronous or asynchronous.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/behavioral/command/">Command</a> — observers are sometimes implemented as queued Commands when notification needs to be asynchronous or retryable.</li>
+<li><a href="/lld-patterns-hub/behavioral/chain-of-responsibility/">Chain of Responsibility</a> — contrast: Observer notifies every registered listener; Chain of Responsibility stops at the first handler that handles the request.</li>
+<li><a href="/lld-patterns-hub/solid/dip/">Dependency Inversion Principle</a> — the subject depends only on the small <code>OrderObserver</code> abstraction, never on concrete observer classes.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/behavioral/strategy/"><div class="dir">← Previous</div><div>Strategy</div></a>
+<a href="/lld-patterns-hub/behavioral/command/" class="to-next"><div class="dir">Next →</div><div>Command</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

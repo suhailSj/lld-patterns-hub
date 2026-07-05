@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Factory Method · LLD Patterns Hub</title>
+<meta name="description" content="Define an interface for creating an object, but let subclasses (or a parameter) decide which concrete class to instantiate." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Factory Method · LLD Patterns Hub" />
+<meta property="og:description" content="Define an interface for creating an object, but let subclasses (or a parameter) decide which concrete class to instantiate." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/" aria-current="page">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Creational Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Creational Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/creational/singleton/">Singleton</a></li>
+<li><a href="/lld-patterns-hub/creational/factory-method/" aria-current="page">Factory Method</a></li>
+<li><a href="/lld-patterns-hub/creational/abstract-factory/">Abstract Factory</a></li>
+<li><a href="/lld-patterns-hub/creational/builder/">Builder</a></li>
+<li><a href="/lld-patterns-hub/creational/prototype/">Prototype</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/creational/">Creational Patterns</a> / Factory Method</p>
+
+    <article class="prose">
+      <h1>Factory Method</h1>
+      <div class="pattern-meta"><span class="tag">Creational</span><span class="tag">GoF</span><span class="tag">notification systems</span></div>
+      <p class="summary-lede">Define an interface for creating an object, but let subclasses (or a parameter) decide which concrete class to instantiate.</p>
+<h2>What problem it solves</h2>
+<p>A notification system needs to send messages via email, SMS, or push notification depending on user preference.
+Client code (the part of the app deciding “send a notification”) shouldn’t need to know the construction details of
+each notifier — new-ing up an <code>SmtpClient</code> here and a <code>TwilioClient</code> there — and shouldn’t need to change every time
+a new channel is added.</p>
+<h2>When to use</h2>
+<ul>
+<li>The exact class to instantiate depends on configuration, user input, or environment, and that decision would
+otherwise scatter <code>if/elif</code> blocks throughout client code.</li>
+<li>You want to centralize and name the creation logic so it’s easy to find and extend.</li>
+<li>You’re following the <a href="/lld-patterns-hub/solid/ocp/">Open/Closed Principle</a> — adding a new notifier type
+should mean adding a class, not editing existing client code.</li>
+</ul>
+<h2>When not to use</h2>
+<ul>
+<li>If there’s only ever going to be one concrete type, a factory is unnecessary ceremony — just construct it directly.</li>
+<li>Don’t reach for Factory Method to avoid writing a two-line constructor call; use it when the <em>selection logic</em>
+itself has real complexity or is likely to grow.</li>
+</ul>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>       «interface»
+        Notifier
+      + send(msg)
+            ▲
+   ┌────────┼─────────┐
+EmailNotifier  SmsNotifier  PushNotifier
+
+NotifierFactory
+  + create(channel: str) -&gt; Notifier   ◀── the one place that knows every concrete type
+</code></pre>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Notifier</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EmailNotifier</span>(<span class="hljs-title class_ inherited__">Notifier</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[email] <span class="hljs-subst">{message}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SmsNotifier</span>(<span class="hljs-title class_ inherited__">Notifier</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[sms] <span class="hljs-subst">{message}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PushNotifier</span>(<span class="hljs-title class_ inherited__">Notifier</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send</span>(<span class="hljs-params">self, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[push] <span class="hljs-subst">{message}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">NotifierFactory</span>:
+    <span class="hljs-string">&quot;&quot;&quot;The one place that knows how to map a channel name to a concrete Notifier.&quot;&quot;&quot;</span>
+
+    _registry: <span class="hljs-built_in">dict</span>[<span class="hljs-built_in">str</span>, <span class="hljs-built_in">type</span>[Notifier]] = {
+        <span class="hljs-string">&quot;email&quot;</span>: EmailNotifier,
+        <span class="hljs-string">&quot;sms&quot;</span>: SmsNotifier,
+        <span class="hljs-string">&quot;push&quot;</span>: PushNotifier,
+    }
+
+<span class="hljs-meta">    @classmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">create</span>(<span class="hljs-params">cls, channel: <span class="hljs-built_in">str</span></span>) -&gt; Notifier:
+        <span class="hljs-keyword">try</span>:
+            <span class="hljs-keyword">return</span> cls._registry[channel]()
+        <span class="hljs-keyword">except</span> KeyError:
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">f&quot;Unknown notification channel: <span class="hljs-subst">{channel}</span>&quot;</span>)
+
+<span class="hljs-comment"># --- usage ---</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">notify_user</span>(<span class="hljs-params">channel: <span class="hljs-built_in">str</span>, message: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+    notifier = NotifierFactory.create(channel)  <span class="hljs-comment"># client code never sees concrete classes</span>
+    notifier.send(message)
+
+notify_user(<span class="hljs-string">&quot;sms&quot;</span>, <span class="hljs-string">&quot;Your order has shipped!&quot;</span>)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">Notifier</span> {
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String message)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">EmailNotifier</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Notifier</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String message)</span> { System.out.println(<span class="hljs-string">&quot;[email] &quot;</span> + message); }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">SmsNotifier</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Notifier</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String message)</span> { System.out.println(<span class="hljs-string">&quot;[sms] &quot;</span> + message); }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PushNotifier</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Notifier</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">send</span><span class="hljs-params">(String message)</span> { System.out.println(<span class="hljs-string">&quot;[push] &quot;</span> + message); }
+}
+
+<span class="hljs-comment">// The one place that knows how to map a channel name to a concrete Notifier.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">NotifierFactory</span> {
+    <span class="hljs-keyword">static</span> Notifier <span class="hljs-title function_">create</span><span class="hljs-params">(String channel)</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">switch</span> (channel) {
+            <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;email&quot;</span> -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">EmailNotifier</span>();
+            <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;sms&quot;</span> -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">SmsNotifier</span>();
+            <span class="hljs-keyword">case</span> <span class="hljs-string">&quot;push&quot;</span> -&gt; <span class="hljs-keyword">new</span> <span class="hljs-title class_">PushNotifier</span>();
+            <span class="hljs-keyword">default</span> -&gt; <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;Unknown notification channel: &quot;</span> + channel);
+        };
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">NotificationClient</span> {
+    <span class="hljs-comment">// client code never sees concrete classes</span>
+    <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">notifyUser</span><span class="hljs-params">(String channel, String message)</span> {
+        <span class="hljs-type">Notifier</span> <span class="hljs-variable">notifier</span> <span class="hljs-operator">=</span> NotifierFactory.create(channel);
+        notifier.send(message);
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// NotificationClient.notifyUser(&quot;sms&quot;, &quot;Your order has shipped!&quot;);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> the Python version uses a dictionary registry, which makes registering a new channel a one-line
+addition and is easy to extend at runtime (e.g. plugin systems registering their own notifier at import time). Java’s
+<code>switch</code> expression (14+) is concise for a fixed, closed set of types; for an open-ended/plugin scenario, Java
+typically uses a <code>Map&lt;String, Supplier&lt;Notifier&gt;&gt;</code> registry instead, mirroring the Python dictionary approach.</p>
+<h2>Real-world example</h2>
+<p><code>java.util.Calendar.getInstance()</code> is a Factory Method — it returns a <code>GregorianCalendar</code> (or a locale-specific
+subclass) without callers ever naming the concrete class. Similarly, Python’s <code>logging.getLogger(name)</code> hands back a
+concrete <code>Logger</code> instance through a factory function that hides caching/construction details.</p>
+<h2>Advantages and tradeoffs</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Advantages</h4>
+<ul>
+<li>Client code depends only on the `Notifier` interface, not any concrete class</li>
+<li>Adding a new channel means adding one class + one registry entry — no existing code changes</li>
+<li>Centralizes and names the "which concrete type do I need" decision instead of scattering it</li>
+</ul>
+</div>
+<div>
+<h4>❌ Tradeoffs</h4>
+<ul>
+<li>Adds a layer of indirection for what might be a very simple constructor call</li>
+<li>A registry/switch still needs *some* central place aware of every concrete type — it doesn't eliminate that knowledge, just concentrates it in one spot</li>
+</ul>
+</div>
+</div>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>Factory Method is often the very first pattern interviewers expect you to reach for when they say “how would you
+avoid a giant if/else picking which class to construct?” Name it, and mention the registry/dictionary variant as the
+more extensible real-world version of the textbook subclassing version.</p>
+</div>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/creational/abstract-factory/">Abstract Factory</a> — a step up: creates families of related objects instead of one product.</li>
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a> — often paired with Factory Method: the factory decides <em>which</em> strategy to hand back.</li>
+<li><a href="/lld-patterns-hub/solid/ocp/">Open/Closed Principle</a> and <a href="/lld-patterns-hub/solid/dip/">Dependency Inversion Principle</a> — Factory Method is one of the main tools for satisfying both.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/creational/singleton/"><div class="dir">← Previous</div><div>Singleton</div></a>
+<a href="/lld-patterns-hub/creational/abstract-factory/" class="to-next"><div class="dir">Next →</div><div>Abstract Factory</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

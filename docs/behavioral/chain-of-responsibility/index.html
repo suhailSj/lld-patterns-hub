@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Chain of Responsibility · LLD Patterns Hub</title>
+<meta name="description" content="Pass a request along a chain of handlers until one of them handles it, without the sender knowing which one will." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Chain of Responsibility · LLD Patterns Hub" />
+<meta property="og:description" content="Pass a request along a chain of handlers until one of them handles it, without the sender knowing which one will." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/" aria-current="page">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Behavioral Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Behavioral Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a></li>
+<li><a href="/lld-patterns-hub/behavioral/observer/">Observer</a></li>
+<li><a href="/lld-patterns-hub/behavioral/command/">Command</a></li>
+<li><a href="/lld-patterns-hub/behavioral/state/">State</a></li>
+<li><a href="/lld-patterns-hub/behavioral/chain-of-responsibility/" aria-current="page">Chain of Responsibility</a></li>
+<li><a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a></li>
+<li><a href="/lld-patterns-hub/behavioral/iterator/">Iterator</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/behavioral/">Behavioral Patterns</a> / Chain of Responsibility</p>
+
+    <article class="prose">
+      <h1>Chain of Responsibility</h1>
+      <div class="pattern-meta"><span class="tag">Behavioral</span><span class="tag">GoF</span><span class="tag">access control</span></div>
+      <p class="summary-lede">Pass a request along a chain of handlers until one of them handles it, without the sender knowing which one will.</p>
+<h2>Problem statement</h2>
+<p>An expense approval system routes a request based on amount: a manager can approve up to $1,000, a director up to
+$10,000, and a VP anything above that. The submitting employee shouldn’t need to know the approval thresholds or
+who’s currently in each role — they just submit the request.</p>
+<h2>Core idea</h2>
+<p>Each approver is a handler with a reference to the <em>next</em> handler in the chain. Each handler checks whether it can
+approve the request; if not, it passes the request to the next handler. The request travels down the chain until
+someone approves it (or the chain ends with nobody able to).</p>
+<h2>Real-world analogy</h2>
+<p>Tech support escalation: a level-1 agent handles common issues; anything they can’t resolve gets escalated to level
+2, then to an engineer. The customer files one ticket and doesn’t need to know the org chart — the ticket moves along
+the chain until someone with the right authority/knowledge handles it.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>      «abstract»
+       Approver
+    - next_approver: Approver
+    + set_next(approver)
+    + handle(request)  ──▶ if can&#x27;t approve, delegates to next_approver.handle(request)
+             ▲
+   ┌─────────┼──────────┐
+Manager   Director   VP
+(each defines its own approval_limit)
+</code></pre>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+<span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ExpenseRequest</span>:
+    employee: <span class="hljs-built_in">str</span>
+    amount: <span class="hljs-built_in">float</span>
+    reason: <span class="hljs-built_in">str</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Approver</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Each handler holds a reference to the next one and decides locally whether it can approve.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>._next_approver: <span class="hljs-string">&quot;Approver | None&quot;</span> = <span class="hljs-literal">None</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">set_next</span>(<span class="hljs-params">self, approver: <span class="hljs-string">&quot;Approver&quot;</span></span>) -&gt; <span class="hljs-string">&quot;Approver&quot;</span>:
+        <span class="hljs-variable language_">self</span>._next_approver = approver
+        <span class="hljs-keyword">return</span> approver  <span class="hljs-comment"># allows chaining: manager.set_next(director).set_next(vp)</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">handle</span>(<span class="hljs-params">self, request: ExpenseRequest</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>._can_approve(request):
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">{self.__class__.__name__}</span> approved $<span class="hljs-subst">{request.amount:<span class="hljs-number">.2</span>f}</span> for <span class="hljs-subst">{request.employee}</span>&quot;</span>)
+        <span class="hljs-keyword">elif</span> <span class="hljs-variable language_">self</span>._next_approver <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:
+            <span class="hljs-variable language_">self</span>._next_approver.handle(request)
+        <span class="hljs-keyword">else</span>:
+            <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;No one could approve $<span class="hljs-subst">{request.amount:<span class="hljs-number">.2</span>f}</span> for <span class="hljs-subst">{request.employee}</span>&quot;</span>)
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_can_approve</span>(<span class="hljs-params">self, request: ExpenseRequest</span>) -&gt; <span class="hljs-built_in">bool</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Manager</span>(<span class="hljs-title class_ inherited__">Approver</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_can_approve</span>(<span class="hljs-params">self, request: ExpenseRequest</span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-keyword">return</span> request.amount &lt;= <span class="hljs-number">1000</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Director</span>(<span class="hljs-title class_ inherited__">Approver</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_can_approve</span>(<span class="hljs-params">self, request: ExpenseRequest</span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-keyword">return</span> request.amount &lt;= <span class="hljs-number">10000</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">VicePresident</span>(<span class="hljs-title class_ inherited__">Approver</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_can_approve</span>(<span class="hljs-params">self, request: ExpenseRequest</span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>  <span class="hljs-comment"># top of the chain: approves anything that reaches this far</span>
+
+<span class="hljs-comment"># --- usage: build the chain once, submitters never see it ---</span>
+manager, director, vp = Manager(), Director(), VicePresident()
+manager.set_next(director).set_next(vp)
+
+manager.handle(ExpenseRequest(<span class="hljs-string">&quot;ada&quot;</span>, <span class="hljs-number">450</span>, <span class="hljs-string">&quot;team lunch&quot;</span>))       <span class="hljs-comment"># Manager approves</span>
+manager.handle(ExpenseRequest(<span class="hljs-string">&quot;grace&quot;</span>, <span class="hljs-number">7500</span>, <span class="hljs-string">&quot;conference&quot;</span>))    <span class="hljs-comment"># escalates to Director</span>
+manager.handle(ExpenseRequest(<span class="hljs-string">&quot;linus&quot;</span>, <span class="hljs-number">50000</span>, <span class="hljs-string">&quot;new server&quot;</span>))   <span class="hljs-comment"># escalates to VP</span>
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Approver</span> {
+    <span class="hljs-comment">// Each handler holds a reference to the next one and decides locally whether it can approve.</span>
+    <span class="hljs-keyword">protected</span> Approver nextApprover;
+
+    Approver <span class="hljs-title function_">setNext</span><span class="hljs-params">(Approver approver)</span> {
+        <span class="hljs-built_in">this</span>.nextApprover = approver;
+        <span class="hljs-keyword">return</span> approver; <span class="hljs-comment">// allows chaining: manager.setNext(director).setNext(vp)</span>
+    }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">handle</span><span class="hljs-params">(ExpenseRequest request)</span> {
+        <span class="hljs-keyword">if</span> (canApprove(request)) {
+            System.out.printf(<span class="hljs-string">&quot;%s approved $%.2f for %s%n&quot;</span>, getClass().getSimpleName(), request.amount, request.employee);
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (nextApprover != <span class="hljs-literal">null</span>) {
+            nextApprover.handle(request);
+        } <span class="hljs-keyword">else</span> {
+            System.out.printf(<span class="hljs-string">&quot;No one could approve $%.2f for %s%n&quot;</span>, request.amount, request.employee);
+        }
+    }
+
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">canApprove</span><span class="hljs-params">(ExpenseRequest request)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Manager</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Approver</span> {
+    <span class="hljs-keyword">protected</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">canApprove</span><span class="hljs-params">(ExpenseRequest request)</span> { <span class="hljs-keyword">return</span> request.amount &lt;= <span class="hljs-number">1000</span>; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Director</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Approver</span> {
+    <span class="hljs-keyword">protected</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">canApprove</span><span class="hljs-params">(ExpenseRequest request)</span> { <span class="hljs-keyword">return</span> request.amount &lt;= <span class="hljs-number">10000</span>; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">VicePresident</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Approver</span> {
+    <span class="hljs-comment">// top of the chain: approves anything that reaches this far</span>
+    <span class="hljs-keyword">protected</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">canApprove</span><span class="hljs-params">(ExpenseRequest request)</span> { <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ExpenseRequest</span> {
+    <span class="hljs-keyword">final</span> String employee;
+    <span class="hljs-keyword">final</span> <span class="hljs-type">double</span> amount;
+    <span class="hljs-keyword">final</span> String reason;
+    ExpenseRequest(String employee, <span class="hljs-type">double</span> amount, String reason) {
+        <span class="hljs-built_in">this</span>.employee = employee; <span class="hljs-built_in">this</span>.amount = amount; <span class="hljs-built_in">this</span>.reason = reason;
+    }
+}
+
+<span class="hljs-comment">// --- usage: build the chain once, submitters never see it ---</span>
+<span class="hljs-comment">// Manager manager = new Manager();</span>
+<span class="hljs-comment">// Director director = new Director();</span>
+<span class="hljs-comment">// VicePresident vp = new VicePresident();</span>
+<span class="hljs-comment">// manager.setNext(director).setNext(vp);</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// manager.handle(new ExpenseRequest(&quot;ada&quot;, 450, &quot;team lunch&quot;));       // Manager approves</span>
+<span class="hljs-comment">// manager.handle(new ExpenseRequest(&quot;grace&quot;, 7500, &quot;conference&quot;));    // escalates to Director</span>
+<span class="hljs-comment">// manager.handle(new ExpenseRequest(&quot;linus&quot;, 50000, &quot;new server&quot;));   // escalates to VP</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> the chain-building style (<code>set_next</code> returning the next approver so calls chain fluently) works
+identically in both languages. This is also exactly how HTTP middleware chains are built in many web frameworks
+(<code>app.use(authMiddleware).use(rateLimiter).use(logger)</code>), which is the pattern’s most common modern incarnation.</p>
+<h2>How to identify when to use it</h2>
+<p>A request passes through a sequence of independent checks or handlers where: (1) the sender shouldn’t need to know
+which handler ultimately deals with it, and (2) the set/order of handlers might change independently of the sender’s
+code. Middleware pipelines (auth → rate-limiting → logging → routing) and escalation/approval workflows are the two
+most common real-world shapes.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Sender is fully decoupled from which handler processes the request</li>
+<li>Handlers can be added, removed, or reordered without changing the sender or other handlers</li>
+<li>Each handler has a single, focused responsibility</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>No guarantee a request is handled at all unless the chain explicitly ends with a catch-all (as `VicePresident` does above)</li>
+<li>Debugging can require stepping through several handlers to find where a request actually got processed</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Multiple potential handlers for a request, where the “right” one depends on runtime conditions and the sender
+shouldn’t hard-code that decision.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>If there’s always exactly one handler for a given request type, a direct call (or Strategy, if the handler varies
+by type but not by escalation) is simpler than building a chain.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>Contrast explicitly with Observer: Chain of Responsibility stops at the first handler that handles the request;
+Observer notifies <em>every</em> registered listener.</li>
+<li>Mention the middleware-pipeline framing — most engineers have used this pattern already, even if they’ve never
+called it “Chain of Responsibility.”</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/behavioral/observer/">Observer</a> — contrast: chain stops at first handler; observer notifies everyone.</li>
+<li><a href="/lld-patterns-hub/behavioral/command/">Command</a> — the request passed along the chain is often itself a Command object.</li>
+<li><a href="/lld-patterns-hub/structural/decorator/">Decorator</a> — structurally similar (each link wraps/forwards to the next), but Decorator’s links all run, while Chain of Responsibility’s links stop as soon as one handles the request.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/behavioral/state/"><div class="dir">← Previous</div><div>State</div></a>
+<a href="/lld-patterns-hub/behavioral/template-method/" class="to-next"><div class="dir">Next →</div><div>Template Method</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

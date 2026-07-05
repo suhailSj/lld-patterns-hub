@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Single Responsibility Principle · LLD Patterns Hub</title>
+<meta name="description" content="A class should have only one reason to change — one job, one owner, one axis of change." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Single Responsibility Principle · LLD Patterns Hub" />
+<meta property="og:description" content="A class should have only one reason to change — one job, one owner, one axis of change." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/" aria-current="page">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 SOLID Principles</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>SOLID Principles</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/solid/srp/" aria-current="page">Single Responsibility Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/ocp/">Open/Closed Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/lsp/">Liskov Substitution Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/isp/">Interface Segregation Principle</a></li>
+<li><a href="/lld-patterns-hub/solid/dip/">Dependency Inversion Principle</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/solid/">SOLID Principles</a> / Single Responsibility Principle</p>
+
+    <article class="prose">
+      <h1>Single Responsibility Principle</h1>
+      <div class="pattern-meta"><span class="tag">SOLID</span><span class="tag">cohesion</span><span class="tag">order processing</span></div>
+      <p class="summary-lede">A class should have only one reason to change — one job, one owner, one axis of change.</p>
+<h2>Intent / definition</h2>
+<p><strong>Single Responsibility Principle (SRP):</strong> a class (or module) should have <strong>one, and only one, reason to change</strong>.
+“Responsibility” here means <em>an axis of change</em> driven by a specific actor or concern — not “does one thing” in the
+tiny-function sense. A class can have several methods and still satisfy SRP, as long as all of them serve the same
+concern and would only ever change together, for the same reason.</p>
+<h2>Problem statement</h2>
+<p>Imagine you’re building the order-processing part of an e-commerce backend. You need to:</p>
+<ol>
+<li>Calculate the order total (including tax and discounts).</li>
+<li>Save the order to the database.</li>
+<li>Email the customer a receipt.</li>
+</ol>
+<p>It’s tempting to put all three inside one <code>Order</code> class, since they all “belong to placing an order.” That
+convenience is exactly what SRP warns against.</p>
+<h2>Why the naive design fails</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 One class, three reasons to change</div>
+<p>If <code>Order</code> calculates totals, persists itself, and sends email, then a tax-rule change, a database migration, and a
+switch from email to SMS notifications <strong>all require editing the same class</strong>. Three unrelated teams — finance,
+infrastructure, and marketing — end up modifying the same file for unrelated reasons, and any one of them can break
+the other two.</p>
+</div>
+<p>Concretely, this design:</p>
+<ul>
+<li>is hard to unit test — testing the tax calculation requires a real (or mocked) database and an SMTP server;</li>
+<li>can’t be reused — another part of the system that needs “just the total” also drags in persistence and email code;</li>
+<li>grows without bound — every new order-related concern (audit logging, analytics events, invoices) gets bolted onto
+the same class until it becomes a “God object.”</li>
+</ul>
+<h2>Solution overview</h2>
+<p>Split the class along its actual axes of change: a calculator that knows pricing rules, a repository that knows how
+to persist orders, and a notifier that knows how to reach the customer. <code>Order</code> itself becomes a plain data holder.
+Each class now has exactly one reason to change:</p>
+<ul>
+<li><code>Order</code> changes only when the <em>shape</em> of order data changes.</li>
+<li><code>OrderPricingCalculator</code> changes only when pricing/tax rules change.</li>
+<li><code>OrderRepository</code> changes only when the storage technology or schema changes.</li>
+<li><code>ReceiptNotifier</code> changes only when the notification channel or template changes.</li>
+</ul>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>Order (data)
+   ▲
+   │ used by
+OrderPricingCalculator ──calculates totals for──▶ Order
+OrderRepository        ──persists──────────────▶ Order
+ReceiptNotifier        ──notifies about─────────▶ Order
+OrderService           ──coordinates the three above
+</code></pre>
+<p><code>OrderService</code> is a thin coordinator — it has one reason to change too: <em>how the steps of “placing an order” are
+sequenced</em>, not what each step does internally.</p>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Model <code>Order</code> as a plain data object (fields only, no behavior beyond basic accessors).</li>
+<li>Extract pricing/tax logic into <code>OrderPricingCalculator</code>.</li>
+<li>Extract persistence into <code>OrderRepository</code> behind a small interface, so the storage engine can change later
+without touching business logic.</li>
+<li>Extract customer communication into <code>ReceiptNotifier</code>.</li>
+<li>Introduce <code>OrderService</code> to orchestrate: calculate → save → notify. This is the only class that knows the <em>order</em>
+of operations; it delegates the <em>how</em> to the other three.</li>
+</ol>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass, field
+
+<span class="hljs-meta">@dataclass</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Order</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Pure data. No pricing, storage, or notification logic lives here.&quot;&quot;&quot;</span>
+    order_id: <span class="hljs-built_in">str</span>
+    customer_email: <span class="hljs-built_in">str</span>
+    line_items: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">tuple</span>[<span class="hljs-built_in">str</span>, <span class="hljs-built_in">float</span>, <span class="hljs-built_in">int</span>]]  <span class="hljs-comment"># (name, unit_price, qty)</span>
+    total: <span class="hljs-built_in">float</span> = field(default=<span class="hljs-number">0.0</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderPricingCalculator</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Reason to change: tax rules / discount rules.&quot;&quot;&quot;</span>
+
+    TAX_RATE = <span class="hljs-number">0.08</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">calculate_total</span>(<span class="hljs-params">self, order: Order</span>) -&gt; <span class="hljs-built_in">float</span>:
+        subtotal = <span class="hljs-built_in">sum</span>(price * qty <span class="hljs-keyword">for</span> _, price, qty <span class="hljs-keyword">in</span> order.line_items)
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">round</span>(subtotal * (<span class="hljs-number">1</span> + <span class="hljs-variable language_">self</span>.TAX_RATE), <span class="hljs-number">2</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderRepository</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Reason to change: storage technology or schema.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):
+        <span class="hljs-variable language_">self</span>._db: <span class="hljs-built_in">dict</span>[<span class="hljs-built_in">str</span>, Order] = {}
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">save</span>(<span class="hljs-params">self, order: Order</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._db[order.order_id] = order
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">get</span>(<span class="hljs-params">self, order_id: <span class="hljs-built_in">str</span></span>) -&gt; Order | <span class="hljs-literal">None</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._db.get(order_id)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ReceiptNotifier</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Reason to change: notification channel or message template.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">send_receipt</span>(<span class="hljs-params">self, order: Order</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Emailing <span class="hljs-subst">{order.customer_email}</span>: your total is $<span class="hljs-subst">{order.total:<span class="hljs-number">.2</span>f}</span>&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderService</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Reason to change: the sequence/orchestration of placing an order.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, calculator: OrderPricingCalculator, repo: OrderRepository, notifier: ReceiptNotifier</span>):
+        <span class="hljs-variable language_">self</span>._calculator = calculator
+        <span class="hljs-variable language_">self</span>._repo = repo
+        <span class="hljs-variable language_">self</span>._notifier = notifier
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">place_order</span>(<span class="hljs-params">self, order: Order</span>) -&gt; Order:
+        order.total = <span class="hljs-variable language_">self</span>._calculator.calculate_total(order)
+        <span class="hljs-variable language_">self</span>._repo.save(order)
+        <span class="hljs-variable language_">self</span>._notifier.send_receipt(order)
+        <span class="hljs-keyword">return</span> order
+
+<span class="hljs-comment"># --- usage ---</span>
+service = OrderService(OrderPricingCalculator(), OrderRepository(), ReceiptNotifier())
+order = Order(<span class="hljs-string">&quot;ORD-1&quot;</span>, <span class="hljs-string">&quot;ada@example.com&quot;</span>, [(<span class="hljs-string">&quot;Keyboard&quot;</span>, <span class="hljs-number">89.0</span>, <span class="hljs-number">1</span>), (<span class="hljs-string">&quot;Mouse&quot;</span>, <span class="hljs-number">25.0</span>, <span class="hljs-number">2</span>)])
+service.place_order(order)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">import</span> java.util.List;
+<span class="hljs-keyword">import</span> java.util.HashMap;
+<span class="hljs-keyword">import</span> java.util.Map;
+<span class="hljs-keyword">import</span> java.util.Optional;
+
+<span class="hljs-comment">// Pure data. No pricing, storage, or notification logic lives here.</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Order</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> String orderId;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> String customerEmail;
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> List&lt;LineItem&gt; lineItems;
+    <span class="hljs-keyword">public</span> <span class="hljs-type">double</span> total;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">Order</span><span class="hljs-params">(String orderId, String customerEmail, List&lt;LineItem&gt; lineItems)</span> {
+        <span class="hljs-built_in">this</span>.orderId = orderId;
+        <span class="hljs-built_in">this</span>.customerEmail = customerEmail;
+        <span class="hljs-built_in">this</span>.lineItems = lineItems;
+    }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">record</span> <span class="hljs-title class_">LineItem</span><span class="hljs-params">(String name, <span class="hljs-type">double</span> unitPrice, <span class="hljs-type">int</span> quantity)</span> {}
+}
+
+<span class="hljs-comment">// Reason to change: tax rules / discount rules.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderPricingCalculator</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">double</span> <span class="hljs-variable">TAX_RATE</span> <span class="hljs-operator">=</span> <span class="hljs-number">0.08</span>;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">double</span> <span class="hljs-title function_">calculateTotal</span><span class="hljs-params">(Order order)</span> {
+        <span class="hljs-type">double</span> <span class="hljs-variable">subtotal</span> <span class="hljs-operator">=</span> order.lineItems.stream()
+            .mapToDouble(item -&gt; item.unitPrice() * item.quantity())
+            .sum();
+        <span class="hljs-keyword">return</span> Math.round(subtotal * (<span class="hljs-number">1</span> + TAX_RATE) * <span class="hljs-number">100.0</span>) / <span class="hljs-number">100.0</span>;
+    }
+}
+
+<span class="hljs-comment">// Reason to change: storage technology or schema.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderRepository</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, Order&gt; db = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">save</span><span class="hljs-params">(Order order)</span> {
+        db.put(order.orderId, order);
+    }
+
+    <span class="hljs-keyword">public</span> Optional&lt;Order&gt; <span class="hljs-title function_">get</span><span class="hljs-params">(String orderId)</span> {
+        <span class="hljs-keyword">return</span> Optional.ofNullable(db.get(orderId));
+    }
+}
+
+<span class="hljs-comment">// Reason to change: notification channel or message template.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ReceiptNotifier</span> {
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">sendReceipt</span><span class="hljs-params">(Order order)</span> {
+        System.out.printf(<span class="hljs-string">&quot;Emailing %s: your total is $%.2f%n&quot;</span>, order.customerEmail, order.total);
+    }
+}
+
+<span class="hljs-comment">// Reason to change: the sequence/orchestration of placing an order.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderService</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> OrderPricingCalculator calculator;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> OrderRepository repo;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ReceiptNotifier notifier;
+
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">OrderService</span><span class="hljs-params">(OrderPricingCalculator calculator, OrderRepository repo, ReceiptNotifier notifier)</span> {
+        <span class="hljs-built_in">this</span>.calculator = calculator;
+        <span class="hljs-built_in">this</span>.repo = repo;
+        <span class="hljs-built_in">this</span>.notifier = notifier;
+    }
+
+    <span class="hljs-keyword">public</span> Order <span class="hljs-title function_">placeOrder</span><span class="hljs-params">(Order order)</span> {
+        order.total = calculator.calculateTotal(order);
+        repo.save(order);
+        notifier.sendReceipt(order);
+        <span class="hljs-keyword">return</span> order;
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// var service = new OrderService(new OrderPricingCalculator(), new OrderRepository(), new ReceiptNotifier());</span>
+<span class="hljs-comment">// var order = new Order(&quot;ORD-1&quot;, &quot;ada@example.com&quot;,</span>
+<span class="hljs-comment">//     List.of(new Order.LineItem(&quot;Keyboard&quot;, 89.0, 1), new Order.LineItem(&quot;Mouse&quot;, 25.0, 2)));</span>
+<span class="hljs-comment">// service.placeOrder(order);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Python’s <code>dataclass</code> gives <code>Order</code> a free constructor and <code>__repr__</code>, mirroring Java’s <code>record</code>
+for the nested <code>LineItem</code>. Neither language enforces SRP for you — it’s purely a design discipline. Java’s static
+typing does make the “one reason to change” boundary easier to see: each class’s public method signatures tell you
+exactly what it’s responsible for.</p>
+<h2>Real-world example</h2>
+<p>Web frameworks demonstrate SRP at the architecture level: a <strong>controller</strong> parses the HTTP request, a <strong>service</strong>
+holds business logic, and a <strong>repository</strong> talks to the database. When a QA engineer says “the price is wrong,”
+you know to look at the service layer only — not scroll through a 900-line controller that also does routing,
+validation, and SQL.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Each class is small enough to understand and test in isolation</li>
+<li>Changes are localized — a tax rule change can't accidentally break email sending</li>
+<li>Classes become reusable in new contexts (e.g. reuse <code>OrderPricingCalculator</code> in a quote/estimate feature)</li>
+<li>Easier onboarding: new engineers can own one class without understanding the whole subsystem</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>More classes and files to navigate for a small feature</li>
+<li>Over-application ("one method per class") creates unnecessary indirection — SRP is about reasons to change, not line count</li>
+<li>Requires a coordinator (<code>OrderService</code>) whose only job is wiring, which can feel like boilerplate</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>A class’s methods serve more than one stakeholder or business concern (e.g. billing <em>and</em> shipping).</li>
+<li>You notice yourself writing “and” when describing what a class does (“it calculates the total <strong>and</strong> saves it
+<strong>and</strong> emails it”).</li>
+<li>Two unrelated bug reports keep leading you back to the same file.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>Don’t split a class into pieces that have no independent reason to change — that’s just indirection without benefit.</li>
+<li>For very small scripts or prototypes, strict SRP can be premature; apply it as the codebase (and team) grows.</li>
+</ul>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>When asked “what would you change about this class?”, look for the word <strong>“and”</strong> in your own description of it.
+If you can’t describe the class in one sentence without “and,” it likely has more than one responsibility.</p>
+</div>
+<h2>Interview talking points</h2>
+<ul>
+<li>Explain “responsibility” as <em>an axis of change owned by an actor</em>, not “does one thing.”</li>
+<li>Give a before/after: show the God-class version, then the split version, and name the actor behind each new class
+(finance owns pricing, infra owns storage, marketing owns notifications).</li>
+<li>Mention that SRP is what makes the other SOLID principles <em>possible</em> — you can’t apply Open/Closed or Dependency
+Inversion cleanly to a class that already has five unrelated responsibilities.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><strong>Facade</strong> (Structural) — often introduced <em>after</em> splitting a God class, to give callers one simple entry point
+back to the now-separated pieces.</li>
+<li><strong>Dependency Inversion Principle</strong> — <code>OrderService</code> depends on abstractions of the calculator/repo/notifier, which
+is what makes each of them independently swappable and testable.</li>
+<li>See also <a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/">Cohesion and Coupling</a> for the underlying theory.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<span></span>
+<a href="/lld-patterns-hub/solid/ocp/" class="to-next"><div class="dir">Next →</div><div>Open/Closed Principle</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

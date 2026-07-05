@@ -1,0 +1,216 @@
+---
+title: "Dependency Injection"
+order: 3
+summary: "Pass an object's dependencies in from outside instead of having it construct them itself — the standard technique for satisfying Dependency Inversion."
+tags: ["Fundamentals", "testing", "authentication"]
+useWhen: "A class constructs its own dependencies internally, making it hard to test or reconfigure."
+---
+
+## Intent / definition
+
+**Dependency Injection (DI):** rather than a class constructing the objects it depends on, those objects ("dependencies")
+are handed to it from outside — typically through the constructor. DI is the most common technique for satisfying
+the <a href="__BASE__/solid/dip/">Dependency Inversion Principle</a>: it's the mechanism; DIP is the design rule
+it satisfies.
+
+## Problem statement
+
+An `AuthService` needs a way to look up users. If it constructs its own `MySqlUserRepository` internally, every test
+of `AuthService` needs a real database connection, and switching databases means editing `AuthService` itself.
+
+## Why the naive approach fails
+
+<div class="callout pitfall">
+<div class="callout-title">🚫 Construction hides a dependency</div>
+
+```python
+class AuthService:
+    def __init__(self):
+        self.repo = MySqlUserRepository()  # hidden dependency, hard-coded
+```
+
+Anyone reading `AuthService()`'s constructor call site has no idea it secretly needs a working MySQL connection until
+it fails at runtime. The dependency is real, but invisible from the outside.
+
+</div>
+
+## Solution overview
+
+Pass the dependency in explicitly:
+
+```python
+class AuthService:
+    def __init__(self, repo: UserRepository):  # dependency is visible right here
+        self.repo = repo
+```
+
+Now the constructor signature documents exactly what `AuthService` needs, and any caller — production code, or a
+test — can supply whichever implementation is appropriate.
+
+## Step-by-step explanation
+
+1. Identify what a class constructs internally that it doesn't strictly need to (databases, HTTP clients, other
+   services).
+2. Change the constructor to accept that dependency as a parameter instead.
+3. Move construction of the concrete dependency to a "composition root" — the outermost layer of the app (a `main`
+   function, a small `bootstrap()`, or a DI framework's configuration) that wires everything together.
+4. Tests supply lightweight fakes/in-memory implementations instead of the real dependency.
+
+## Python example
+
+```python
+from abc import ABC, abstractmethod
+
+class UserRepository(ABC):
+    @abstractmethod
+    def find_by_email(self, email: str) -> dict | None: ...
+
+class MySqlUserRepository(UserRepository):
+    def find_by_email(self, email: str) -> dict | None:
+        print(f"SELECT * FROM users WHERE email = '{email}'")
+        return {"email": email, "password_hash": "hashed:secret"}
+
+class InMemoryUserRepository(UserRepository):
+    """A fake used only in tests — no real database required."""
+
+    def __init__(self, users: dict):
+        self._users = users
+
+    def find_by_email(self, email: str) -> dict | None:
+        return self._users.get(email)
+
+class AuthService:
+    """The dependency is injected, not constructed internally — visible in the signature."""
+
+    def __init__(self, repo: UserRepository):
+        self._repo = repo
+
+    def login(self, email: str, password_hash: str) -> bool:
+        user = self._repo.find_by_email(email)
+        return user is not None and user["password_hash"] == password_hash
+
+# --- composition root: the one place that wires concrete implementations together ---
+def build_production_auth_service() -> AuthService:
+    return AuthService(MySqlUserRepository())
+
+# --- test code: no real database needed ---
+def test_login_succeeds_with_correct_password():
+    service = AuthService(InMemoryUserRepository({
+        "ada@example.com": {"email": "ada@example.com", "password_hash": "hashed:secret"}
+    }))
+    assert service.login("ada@example.com", "hashed:secret") is True
+```
+
+```java
+import java.util.Map;
+import java.util.Optional;
+
+interface UserRepository {
+    Optional<Map<String, String>> findByEmail(String email);
+}
+
+class MySqlUserRepository implements UserRepository {
+    public Optional<Map<String, String>> findByEmail(String email) {
+        System.out.println("SELECT * FROM users WHERE email = '" + email + "'");
+        return Optional.of(Map.of("email", email, "passwordHash", "hashed:secret"));
+    }
+}
+
+// A fake used only in tests — no real database required.
+class InMemoryUserRepository implements UserRepository {
+    private final Map<String, Map<String, String>> users;
+    InMemoryUserRepository(Map<String, Map<String, String>> users) { this.users = users; }
+
+    public Optional<Map<String, String>> findByEmail(String email) {
+        return Optional.ofNullable(users.get(email));
+    }
+}
+
+// The dependency is injected, not constructed internally — visible in the constructor signature.
+class AuthService {
+    private final UserRepository repo;
+    AuthService(UserRepository repo) { this.repo = repo; }
+
+    boolean login(String email, String passwordHash) {
+        return repo.findByEmail(email)
+            .map(user -> user.get("passwordHash").equals(passwordHash))
+            .orElse(false);
+    }
+}
+
+class CompositionRoot {
+    // The one place that wires concrete implementations together.
+    static AuthService buildProductionAuthService() {
+        return new AuthService(new MySqlUserRepository());
+    }
+}
+
+// --- test code: no real database needed ---
+// AuthService service = new AuthService(new InMemoryUserRepository(
+//     Map.of("ada@example.com", Map.of("email", "ada@example.com", "passwordHash", "hashed:secret"))));
+// assert service.login("ada@example.com", "hashed:secret");
+```
+
+**Language notes:** the technique (constructor injection) is identical in both languages. Java ecosystems often add a
+DI *framework* (Spring, Guice) that automates wiring via annotations (`@Autowired`, `@Inject`) — but the underlying
+idea is exactly the manual constructor injection shown above; frameworks just automate the composition root at scale.
+Python projects generally skip a DI framework entirely (plain constructor arguments, as shown, are usually enough)
+since the language's flexibility makes manual wiring lightweight.
+
+## Real-world example
+
+Test suites are the most visible real-world proof of DI's value: any codebase that can substitute an in-memory
+database, a fake payment gateway, or a mock email sender for tests — without changing the class under test — is
+relying on dependency injection to make that substitution possible.
+
+## Pros
+
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Makes dependencies visible in the constructor signature instead of hidden inside the class body</li>
+<li>Enables fast, isolated unit tests with fakes/in-memory implementations</li>
+<li>Decouples business logic from specific infrastructure choices</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Constructors with many injected dependencies can signal a class doing too much (a <a href="__BASE__/solid/srp/">SRP</a> smell)</li>
+<li>DI frameworks add real learning curve and "magic" wiring that can be hard to trace in large codebases</li>
+</ul>
+</div>
+</div>
+
+## When to use
+
+- Any class that talks to infrastructure (databases, HTTP, file systems, third-party APIs) that you'll want to fake
+  or swap in tests or across environments.
+
+## When to avoid
+
+- Trivial, stateless helper classes with no external dependencies don't need to be "injected" anywhere — just
+  instantiate them normally.
+
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+
+Be precise about the difference from <a href="__BASE__/solid/dip/">DIP</a> if asked: DIP is the design
+<em>principle</em> (depend on abstractions); Dependency Injection is the <em>technique</em> most commonly used to
+satisfy it.
+
+</div>
+
+## Interview talking points
+
+- Explain "constructor injection" concretely with a before/after, exactly as shown above — interviewers want to see
+  the hidden-dependency problem named, not just the term "DI."
+- Mention the "composition root" concept: DI doesn't eliminate the need to construct concrete objects somewhere — it
+  moves that responsibility to one well-known place instead of scattering it.
+
+## Related patterns
+
+- <a href="__BASE__/solid/dip/">Dependency Inversion Principle</a> — the design rule DI satisfies.
+- <a href="__BASE__/creational/factory-method/">Factory Method</a> / <a href="__BASE__/creational/abstract-factory/">Abstract Factory</a> — often used inside the composition root to build the concrete dependencies being injected.
+- <a href="__BASE__/creational/singleton/">Singleton</a> — DI is the usual, more testable alternative when you want "one shared instance" application-wide.

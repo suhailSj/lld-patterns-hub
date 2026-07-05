@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cohesion and Coupling · LLD Patterns Hub</title>
+<meta name="description" content="The two forces that determine how maintainable a design is: how tightly related a class's own responsibilities are (cohesion), and how tangled it is with other classes (coupling)." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Cohesion and Coupling · LLD Patterns Hub" />
+<meta property="og:description" content="The two forces that determine how maintainable a design is: how tightly related a class's own responsibilities are (cohesion), and how tangled it is with other classes (coupling)." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/" aria-current="page">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 LLD Fundamentals</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>LLD Fundamentals</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/oop-pillars/">Abstraction, Encapsulation & Polymorphism</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/">Interfaces vs. Abstract Classes</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/immutability/">Immutability</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/" aria-current="page">Cohesion and Coupling</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interview-tips/">Common LLD Interview Tips</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/fundamentals/">LLD Fundamentals</a> / Cohesion and Coupling</p>
+
+    <article class="prose">
+      <h1>Cohesion and Coupling</h1>
+      <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">architecture</span><span class="tag">order processing</span></div>
+      <p class="summary-lede">The two forces that determine how maintainable a design is: how tightly related a class's own responsibilities are (cohesion), and how tangled it is with other classes (coupling).</p>
+<h2>Intent / definition</h2>
+<p><strong>Cohesion</strong> measures how closely related the responsibilities <em>within</em> a single class are — high cohesion means
+everything in the class serves one clear purpose. <strong>Coupling</strong> measures how much classes depend on each other’s
+internals — low coupling means classes can change independently without breaking one another. The goal in good
+design is always the same shape: <strong>high cohesion, low coupling</strong>.</p>
+<h2>Problem statement</h2>
+<p>Revisit the <a href="/lld-patterns-hub/solid/srp/">Single Responsibility Principle</a> order-processing example: an
+<code>Order</code> class originally calculated totals, saved to the database, and sent email receipts, all in one place. That
+example was framed around “reasons to change.” Cohesion and coupling are the underlying metrics that explain
+<em>why</em> that design was bad and the split version is better.</p>
+<h2>Why the naive design fails (in cohesion/coupling terms)</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 Low cohesion, tight coupling — the worst of both</div>
+<p>The original <code>Order</code> class had <strong>low cohesion</strong>: pricing math, SQL, and SMTP calls have nothing to do with each
+other conceptually, yet were bundled into one class. It also created <strong>tight coupling</strong>: any code that used <code>Order</code>
+for its pricing logic was forced to also depend on (and instantiate/mock) its database and email logic, whether it
+needed them or not.</p>
+</div>
+<h2>Solution overview</h2>
+<p>Splitting into <code>OrderPricingCalculator</code>, <code>OrderRepository</code>, and <code>ReceiptNotifier</code> (see SRP) raises cohesion — each
+class now does exactly one conceptually related thing — and lowers coupling, since each class depends on the others
+only through small, explicit interfaces (or not at all). <code>OrderService</code> coordinates them, but even it depends only on
+abstractions, not concrete implementations (see <a href="/lld-patterns-hub/solid/dip/">DIP</a>).</p>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>For a given class, list its methods and ask: “do these all serve the same one purpose?” If not, cohesion is low.</li>
+<li>For a given class, list every other concrete class it directly references. If that list is long, or includes
+classes unrelated to its core job, coupling is high.</li>
+<li>Split low-cohesion classes along their natural, independent responsibilities.</li>
+<li>Reduce coupling between the resulting classes by depending on interfaces (see
+<a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/">Interfaces vs. Abstract Classes</a>) instead
+of concrete classes wherever the dependency crosses a conceptual boundary.</li>
+</ol>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-comment"># LOW cohesion, TIGHT coupling: one class, three unrelated concerns,</span>
+<span class="hljs-comment"># and anything using it drags in a live DB + SMTP dependency.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderBad</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, db_connection, smtp_client</span>):
+        <span class="hljs-variable language_">self</span>.db = db_connection
+        <span class="hljs-variable language_">self</span>.smtp = smtp_client
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">calculate_total</span>(<span class="hljs-params">self, line_items</span>):
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(price * qty <span class="hljs-keyword">for</span> _, price, qty <span class="hljs-keyword">in</span> line_items)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">save</span>(<span class="hljs-params">self, order_id, total</span>):
+        <span class="hljs-variable language_">self</span>.db.execute(<span class="hljs-string">f&quot;INSERT INTO orders VALUES (<span class="hljs-subst">{order_id}</span>, <span class="hljs-subst">{total}</span>)&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">email_receipt</span>(<span class="hljs-params">self, email, total</span>):
+        <span class="hljs-variable language_">self</span>.smtp.send(email, <span class="hljs-string">f&quot;Your total: $<span class="hljs-subst">{total}</span>&quot;</span>)
+
+<span class="hljs-comment"># HIGH cohesion, LOOSE coupling: each class has one job and depends on</span>
+<span class="hljs-comment"># nothing beyond what it truly needs — no class here even imports the others&#x27; internals.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderPricingCalculator</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">calculate_total</span>(<span class="hljs-params">self, line_items: <span class="hljs-built_in">list</span>[<span class="hljs-built_in">tuple</span>[<span class="hljs-built_in">str</span>, <span class="hljs-built_in">float</span>, <span class="hljs-built_in">int</span>]]</span>) -&gt; <span class="hljs-built_in">float</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-built_in">sum</span>(price * qty <span class="hljs-keyword">for</span> _, price, qty <span class="hljs-keyword">in</span> line_items)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderRepository</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, db_connection</span>):
+        <span class="hljs-variable language_">self</span>._db = db_connection  <span class="hljs-comment"># only this class touches the database</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">save</span>(<span class="hljs-params">self, order_id: <span class="hljs-built_in">str</span>, total: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._db.execute(<span class="hljs-string">f&quot;INSERT INTO orders VALUES (<span class="hljs-subst">{order_id}</span>, <span class="hljs-subst">{total}</span>)&quot;</span>)
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ReceiptNotifier</span>:
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, smtp_client</span>):
+        <span class="hljs-variable language_">self</span>._smtp = smtp_client  <span class="hljs-comment"># only this class touches SMTP</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">email_receipt</span>(<span class="hljs-params">self, email: <span class="hljs-built_in">str</span>, total: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._smtp.send(email, <span class="hljs-string">f&quot;Your total: $<span class="hljs-subst">{total}</span>&quot;</span>)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-comment">// LOW cohesion, TIGHT coupling: one class, three unrelated concerns,</span>
+<span class="hljs-comment">// and anything using it drags in a live DB + SMTP dependency.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderBad</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Object dbConnection;
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Object smtpClient;
+
+    OrderBad(Object dbConnection, Object smtpClient) {
+        <span class="hljs-built_in">this</span>.dbConnection = dbConnection;
+        <span class="hljs-built_in">this</span>.smtpClient = smtpClient;
+    }
+
+    <span class="hljs-type">double</span> <span class="hljs-title function_">calculateTotal</span><span class="hljs-params">(java.util.List&lt;<span class="hljs-type">double</span>[]&gt; lineItems)</span> {
+        <span class="hljs-keyword">return</span> lineItems.stream().mapToDouble(li -&gt; li[<span class="hljs-number">0</span>] * li[<span class="hljs-number">1</span>]).sum();
+    }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">save</span><span class="hljs-params">(String orderId, <span class="hljs-type">double</span> total)</span> { <span class="hljs-comment">/* touches dbConnection directly */</span> }
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">emailReceipt</span><span class="hljs-params">(String email, <span class="hljs-type">double</span> total)</span> { <span class="hljs-comment">/* touches smtpClient directly */</span> }
+}
+
+<span class="hljs-comment">// HIGH cohesion, LOOSE coupling: each class has one job and depends on</span>
+<span class="hljs-comment">// nothing beyond what it truly needs — no class here even references the others&#x27; internals.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderPricingCalculator</span> {
+    <span class="hljs-type">double</span> <span class="hljs-title function_">calculateTotal</span><span class="hljs-params">(java.util.List&lt;<span class="hljs-type">double</span>[]&gt; lineItems)</span> {
+        <span class="hljs-keyword">return</span> lineItems.stream().mapToDouble(li -&gt; li[<span class="hljs-number">0</span>] * li[<span class="hljs-number">1</span>]).sum();
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">OrderRepository</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Object dbConnection; <span class="hljs-comment">// only this class touches the database</span>
+    OrderRepository(Object dbConnection) { <span class="hljs-built_in">this</span>.dbConnection = dbConnection; }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">save</span><span class="hljs-params">(String orderId, <span class="hljs-type">double</span> total)</span> { <span class="hljs-comment">/* ... */</span> }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">ReceiptNotifier</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Object smtpClient; <span class="hljs-comment">// only this class touches SMTP</span>
+    ReceiptNotifier(Object smtpClient) { <span class="hljs-built_in">this</span>.smtpClient = smtpClient; }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">emailReceipt</span><span class="hljs-params">(String email, <span class="hljs-type">double</span> total)</span> { <span class="hljs-comment">/* ... */</span> }
+}
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> cohesion and coupling are design properties, not language features — both examples show the same
+improvement in either language. Statically typed languages like Java make tight coupling slightly more visible at
+compile time (import statements and constructor parameter types make dependencies explicit); Python’s dynamic typing
+means tight coupling can hide more easily until it’s exercised at runtime, which is one more reason disciplined
+constructor-based dependencies (see <a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency
+Injection</a>) matter even more in Python codebases.</p>
+<h2>Real-world example</h2>
+<p>Microservice architectures are, at the system level, an application of “high cohesion, low coupling”: each service
+owns one cohesive business capability (orders, inventory, payments) and communicates with others only through small,
+versioned APIs — never by reaching into another service’s database directly.</p>
+<h2>Pros of high cohesion / low coupling</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Benefits</h4>
+<ul>
+<li>Changes stay localized — a pricing rule change can't accidentally break email sending</li>
+<li>Classes are independently testable and reusable</li>
+<li>New engineers can understand one class without loading the whole subsystem into their head</li>
+</ul>
+</div>
+<div>
+<h4>❌ Tradeoffs of over-splitting</h4>
+<ul>
+<li>Excessive splitting in the name of cohesion can create so many tiny classes that the overall *system* becomes harder to navigate, even if each piece is individually simple</li>
+<li>Some coupling is unavoidable and healthy — a coordinator class (like <code>OrderService</code>) is necessarily coupled to the pieces it orchestrates</li>
+</ul>
+</div>
+</div>
+<h2>When to use this lens</h2>
+<ul>
+<li>Reviewing whether a proposed class split is actually an improvement (does it raise cohesion / lower coupling, or
+just move code around?).</li>
+<li>Diagnosing why a codebase feels hard to change — usually traceable to specific low-cohesion or tightly-coupled
+classes.</li>
+</ul>
+<h2>When to avoid over-applying it</h2>
+<ul>
+<li>Don’t split a genuinely cohesive class further just to make it smaller — cohesion is about <em>conceptual</em>
+relatedness, not line count.</li>
+</ul>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>“High cohesion, low coupling” is the single most reusable phrase in an LLD interview — nearly every SOLID principle
+and structural pattern can be explained as a specific technique for improving one or both.</p>
+</div>
+<h2>Interview talking points</h2>
+<ul>
+<li>When justifying any refactor, name which of the two (cohesion, coupling) it improves and how — vague “this is
+cleaner” answers are far weaker than “this raises cohesion because X now only depends on Y.”</li>
+<li>Be ready to point out when a proposed split <em>doesn’t</em> actually help — e.g. splitting a class purely by method count
+rather than by responsibility often makes coupling worse, not better.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/solid/srp/">Single Responsibility Principle</a> — the SOLID principle most directly about cohesion.</li>
+<li><a href="/lld-patterns-hub/solid/dip/">Dependency Inversion Principle</a> and <a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a> — the primary tools for reducing coupling between classes.</li>
+<li><a href="/lld-patterns-hub/structural/facade/">Facade</a> — reduces coupling between client code and a whole subsystem at once.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/fundamentals/immutability/"><div class="dir">← Previous</div><div>Immutability</div></a>
+<a href="/lld-patterns-hub/fundamentals/interview-tips/" class="to-next"><div class="dir">Next →</div><div>Common LLD Interview Tips</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

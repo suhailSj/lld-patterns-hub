@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Composition vs. Inheritance · LLD Patterns Hub</title>
+<meta name="description" content="Two ways to reuse code and share behavior — 'is-a' inheritance vs. 'has-a' composition — and why composition is usually the safer default." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Composition vs. Inheritance · LLD Patterns Hub" />
+<meta property="og:description" content="Two ways to reuse code and share behavior — 'is-a' inheritance vs. 'has-a' composition — and why composition is usually the safer default." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/" aria-current="page">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 LLD Fundamentals</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>LLD Fundamentals</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/" aria-current="page">Composition vs. Inheritance</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/oop-pillars/">Abstraction, Encapsulation & Polymorphism</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/">Interfaces vs. Abstract Classes</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/immutability/">Immutability</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/">Cohesion and Coupling</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interview-tips/">Common LLD Interview Tips</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/fundamentals/">LLD Fundamentals</a> / Composition vs. Inheritance</p>
+
+    <article class="prose">
+      <h1>Composition vs. Inheritance</h1>
+      <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">OOP</span><span class="tag">delivery vehicles</span></div>
+      <p class="summary-lede">Two ways to reuse code and share behavior — 'is-a' inheritance vs. 'has-a' composition — and why composition is usually the safer default.</p>
+<h2>Intent / definition</h2>
+<p>Two classes can share behavior in two fundamentally different ways. <strong>Inheritance</strong> (“is-a”): a subclass extends a
+base class and inherits its implementation directly — <code>ElectricBike extends Vehicle</code>. <strong>Composition</strong> (“has-a”): a
+class holds a reference to another object and delegates to it — <code>DeliveryVehicle</code> <em>has a</em> <code>MovementBehavior</code>. Both
+achieve reuse; they differ in how tightly coupled the reusing class becomes to the reused implementation.</p>
+<h2>Problem statement</h2>
+<p>A delivery company has vehicles: bikes, vans, and drones. Each moves differently (pedal power, driving, flying) and
+some can carry different amounts of cargo. New vehicle types are added a few times a year.</p>
+<h2>Why the naive (inheritance-heavy) design fails</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 Deep hierarchies get brittle fast</div>
+<p>Modeling this with inheritance — <code>Vehicle → LandVehicle → Bike → ElectricBike</code> — works until a requirement doesn’t
+fit the tree. What about a vehicle that can both drive <em>and</em> fly (a delivery drone that also has wheels for the last
+few feet)? Multiple inheritance of behavior gets messy fast, and every vehicle is locked into whatever movement logic
+its ancestors chose — you can’t swap <code>ElectricBike</code>’s movement behavior at runtime without changing its class.</p>
+</div>
+<p>This design:</p>
+<ul>
+<li>creates a “fragile base class” problem — a change to <code>Vehicle</code> can ripple unpredictably through every descendant;</li>
+<li>forces movement and cargo logic to be decided at compile time (which class you picked), not configuration time;</li>
+<li>struggles with any vehicle that needs a <em>combination</em> of behaviors that don’t map cleanly onto a single-inheritance
+tree.</li>
+</ul>
+<h2>Solution overview</h2>
+<p>Model “how it moves” and “how much it can carry” as separate, swappable objects (<code>MovementBehavior</code>,
+<code>CargoBehavior</code>) that a <code>DeliveryVehicle</code> <em>holds</em>, rather than inherits. Each vehicle type is composed from whichever
+behaviors it needs — including combinations that wouldn’t fit cleanly in a single-inheritance tree.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>DeliveryVehicle
+  - movement: MovementBehavior     ◀── composition (&quot;has-a&quot;)
+  - cargo: CargoBehavior           ◀── composition (&quot;has-a&quot;)
+  + deliver(destination)
+
+«interface» MovementBehavior       «interface» CargoBehavior
+  + move(to)                          + load(item)
+       ▲                                   ▲
+  PedalMovement / DriveMovement / FlyMovement    SmallCargo / LargeCargo
+</code></pre>
+<h2>Step-by-step explanation</h2>
+<ol>
+<li>Identify the behaviors that vary independently of “what kind of vehicle this is” (movement, cargo capacity).</li>
+<li>Extract each as a small interface (<code>MovementBehavior</code>, <code>CargoBehavior</code>).</li>
+<li>Give <code>DeliveryVehicle</code> references to instances of these interfaces instead of inheriting from a movement-specific
+base class.</li>
+<li>Assemble each concrete vehicle by choosing which behaviors to plug in — mixing and matching freely, including
+combinations a class hierarchy couldn’t express.</li>
+</ol>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">MovementBehavior</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">move</span>(<span class="hljs-params">self, destination: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PedalMovement</span>(<span class="hljs-title class_ inherited__">MovementBehavior</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">move</span>(<span class="hljs-params">self, destination: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;Pedaling to <span class="hljs-subst">{destination}</span>&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DriveMovement</span>(<span class="hljs-title class_ inherited__">MovementBehavior</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">move</span>(<span class="hljs-params">self, destination: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;Driving to <span class="hljs-subst">{destination}</span>&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FlyMovement</span>(<span class="hljs-title class_ inherited__">MovementBehavior</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">move</span>(<span class="hljs-params">self, destination: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">str</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-string">f&quot;Flying to <span class="hljs-subst">{destination}</span>&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DeliveryVehicle</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Composed FROM behaviors (has-a), not built as a deep inheritance tree (is-a).&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, name: <span class="hljs-built_in">str</span>, movement: MovementBehavior</span>):
+        <span class="hljs-variable language_">self</span>.name = name
+        <span class="hljs-variable language_">self</span>._movement = movement
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">deliver</span>(<span class="hljs-params">self, destination: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;<span class="hljs-subst">{self.name}</span>: <span class="hljs-subst">{self._movement.move(destination)}</span>&quot;</span>)
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">set_movement</span>(<span class="hljs-params">self, movement: MovementBehavior</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-comment"># A behavior can be swapped at runtime — impossible with a fixed inheritance choice.</span>
+        <span class="hljs-variable language_">self</span>._movement = movement
+
+<span class="hljs-comment"># --- usage ---</span>
+bike = DeliveryVehicle(<span class="hljs-string">&quot;Cargo Bike #4&quot;</span>, PedalMovement())
+bike.deliver(<span class="hljs-string">&quot;123 Main St&quot;</span>)
+
+drone = DeliveryVehicle(<span class="hljs-string">&quot;Drone #9&quot;</span>, FlyMovement())
+drone.deliver(<span class="hljs-string">&quot;456 Oak Ave&quot;</span>)
+
+<span class="hljs-comment"># A bike upgraded with an electric assist just swaps its movement behavior:</span>
+bike.set_movement(DriveMovement())
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">MovementBehavior</span> {
+    String <span class="hljs-title function_">move</span><span class="hljs-params">(String destination)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PedalMovement</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">MovementBehavior</span> {
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">move</span><span class="hljs-params">(String destination)</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Pedaling to &quot;</span> + destination; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DriveMovement</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">MovementBehavior</span> {
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">move</span><span class="hljs-params">(String destination)</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Driving to &quot;</span> + destination; }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">FlyMovement</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">MovementBehavior</span> {
+    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">move</span><span class="hljs-params">(String destination)</span> { <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Flying to &quot;</span> + destination; }
+}
+
+<span class="hljs-comment">// Composed FROM behaviors (has-a), not built as a deep inheritance tree (is-a).</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">DeliveryVehicle</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String name;
+    <span class="hljs-keyword">private</span> MovementBehavior movement;
+
+    DeliveryVehicle(String name, MovementBehavior movement) {
+        <span class="hljs-built_in">this</span>.name = name;
+        <span class="hljs-built_in">this</span>.movement = movement;
+    }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">deliver</span><span class="hljs-params">(String destination)</span> {
+        System.out.println(name + <span class="hljs-string">&quot;: &quot;</span> + movement.move(destination));
+    }
+
+    <span class="hljs-keyword">void</span> <span class="hljs-title function_">setMovement</span><span class="hljs-params">(MovementBehavior movement)</span> {
+        <span class="hljs-comment">// A behavior can be swapped at runtime — impossible with a fixed inheritance choice.</span>
+        <span class="hljs-built_in">this</span>.movement = movement;
+    }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// DeliveryVehicle bike = new DeliveryVehicle(&quot;Cargo Bike #4&quot;, new PedalMovement());</span>
+<span class="hljs-comment">// bike.deliver(&quot;123 Main St&quot;);</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// DeliveryVehicle drone = new DeliveryVehicle(&quot;Drone #9&quot;, new FlyMovement());</span>
+<span class="hljs-comment">// drone.deliver(&quot;456 Oak Ave&quot;);</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// bike.setMovement(new DriveMovement()); // upgraded with an electric assist</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> this “favor composition” guidance applies identically in both languages — it’s a design
+discipline, not a language feature. Java developers sometimes reach for inheritance more readily because abstract
+classes/interfaces feel like “the OOP way”; Python’s flexibility (duck typing, first-class functions) often makes
+composition even more natural, since a <code>MovementBehavior</code> could just be a function passed in rather than a full
+class.</p>
+<h2>Real-world example</h2>
+<p>Game engines almost universally use composition (“entity-component systems”) instead of deep inheritance for exactly
+this reason: a game object’s <code>Health</code>, <code>Movement</code>, <code>Renderer</code>, and <code>Inventory</code> are separate, swappable components,
+because a <code>FlyingArmoredTank</code> and a <code>WalkingUnarmoredScout</code> don’t fit cleanly into one inheritance tree, but freely
+compose from shared components.</p>
+<h2>Pros of composition</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Composition pros</h4>
+<ul>
+<li>Behavior can be swapped at runtime, not fixed at class-definition time</li>
+<li>Avoids deep, fragile inheritance chains</li>
+<li>Naturally supports combinations that wouldn't fit a single-inheritance tree</li>
+</ul>
+</div>
+<div>
+<h4>❌ Composition cons</h4>
+<ul>
+<li>More objects and wiring to keep track of</li>
+<li>Slightly more indirection to read ("what does this vehicle actually do?" requires checking which behavior objects it holds)</li>
+</ul>
+</div>
+</div>
+<h2>When to use inheritance instead</h2>
+<p>Inheritance is still the right tool when the relationship is genuinely, permanently an “is-a” relationship that
+satisfies <a href="/lld-patterns-hub/solid/lsp/">Liskov Substitution</a> — e.g. <code>SavingsAccount extends BankAccount</code> when
+every operation valid on <code>BankAccount</code> is also valid, unmodified, on <code>SavingsAccount</code>.</p>
+<h2>When to avoid composition</h2>
+<ul>
+<li>Extremely simple, unlikely-to-vary behavior doesn’t need to be extracted into a swappable component — that’s
+premature abstraction.</li>
+</ul>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>The famous guidance is “favor composition over inheritance,” not “never use inheritance.” Be ready to say
+<em>when</em> inheritance is still appropriate — a genuine, stable is-a relationship — rather than treating it as
+universally wrong.</p>
+</div>
+<h2>Interview talking points</h2>
+<ul>
+<li>State the rule of thumb precisely: prefer composition by default; use inheritance only for a true is-a relationship
+that will hold up under Liskov Substitution.</li>
+<li>Nearly every structural/behavioral pattern built on delegation (<a href="/lld-patterns-hub/structural/decorator/">Decorator</a>,
+<a href="/lld-patterns-hub/structural/bridge/">Bridge</a>, <a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a>) is,
+at its core, “apply composition instead of inheritance to solve a specific flexibility problem” — naming that
+connection shows deeper understanding.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/behavioral/strategy/">Strategy</a> and <a href="/lld-patterns-hub/structural/decorator/">Decorator</a> — both are composition applied to specific problems (swappable algorithms, stackable behavior).</li>
+<li><a href="/lld-patterns-hub/structural/bridge/">Bridge</a> — composition used specifically to decouple two independently varying dimensions.</li>
+<li><a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a> — the main pattern that deliberately leans on inheritance instead; useful to contrast.</li>
+<li>See the <a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a> for a compact side-by-side table.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<span></span>
+<a href="/lld-patterns-hub/fundamentals/oop-pillars/" class="to-next"><div class="dir">Next →</div><div>Abstraction, Encapsulation & Polymorphism</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

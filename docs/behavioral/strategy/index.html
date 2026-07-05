@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Strategy · LLD Patterns Hub</title>
+<meta name="description" content="Define a family of interchangeable algorithms, encapsulate each one, and let the client pick which to use at runtime." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Strategy · LLD Patterns Hub" />
+<meta property="og:description" content="Define a family of interchangeable algorithms, encapsulate each one, and let the client pick which to use at runtime." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/" aria-current="page">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 Behavioral Patterns</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>Behavioral Patterns</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/behavioral/strategy/" aria-current="page">Strategy</a></li>
+<li><a href="/lld-patterns-hub/behavioral/observer/">Observer</a></li>
+<li><a href="/lld-patterns-hub/behavioral/command/">Command</a></li>
+<li><a href="/lld-patterns-hub/behavioral/state/">State</a></li>
+<li><a href="/lld-patterns-hub/behavioral/chain-of-responsibility/">Chain of Responsibility</a></li>
+<li><a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a></li>
+<li><a href="/lld-patterns-hub/behavioral/iterator/">Iterator</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/behavioral/">Behavioral Patterns</a> / Strategy</p>
+
+    <article class="prose">
+      <h1>Strategy</h1>
+      <div class="pattern-meta"><span class="tag">Behavioral</span><span class="tag">GoF</span><span class="tag">payment processing</span></div>
+      <p class="summary-lede">Define a family of interchangeable algorithms, encapsulate each one, and let the client pick which to use at runtime.</p>
+<h2>Problem statement</h2>
+<p>A checkout flow must support paying by credit card, PayPal, or wallet balance — and the set of supported payment
+methods grows every few months. The checkout logic (validate cart, apply discounts, charge, confirm) should stay the
+same no matter which payment method is chosen.</p>
+<h2>Core idea</h2>
+<p>Extract “how to pay” into its own interface (<code>PaymentStrategy</code>) with one method, <code>pay(amount)</code>. Each payment method
+becomes a class implementing that interface. <code>Checkout</code> holds a reference to whichever strategy the user picked and
+calls it without knowing (or caring) which concrete implementation it is.</p>
+<h2>Real-world analogy</h2>
+<p>Choosing a route on a map app: walking, driving, cycling, and public transit are all “get from A to B” strategies.
+The map app’s turn-by-turn UI doesn’t change based on which one you pick — it just asks the selected strategy to
+compute a route.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>      «interface»
+     PaymentStrategy
+    + pay(amount): bool
+           ▲
+   ┌───────┼────────┐
+CreditCardStrategy  PayPalStrategy  WalletStrategy
+
+Checkout
+  - strategy: PaymentStrategy   ◀── set at runtime, e.g. from user selection
+  + checkout(amount)
+</code></pre>
+<h2>Python example</h2>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PaymentStrategy</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pay</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CreditCardStrategy</span>(<span class="hljs-title class_ inherited__">PaymentStrategy</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, card_number: <span class="hljs-built_in">str</span></span>):
+        <span class="hljs-variable language_">self</span>.card_number = card_number
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pay</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Charging card ending <span class="hljs-subst">{self.card_number[-<span class="hljs-number">4</span>:]}</span>: <span class="hljs-subst">{amount_cents}</span> cents&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PayPalStrategy</span>(<span class="hljs-title class_ inherited__">PaymentStrategy</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, email: <span class="hljs-built_in">str</span></span>):
+        <span class="hljs-variable language_">self</span>.email = email
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pay</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Charging PayPal account <span class="hljs-subst">{self.email}</span>: <span class="hljs-subst">{amount_cents}</span> cents&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">WalletStrategy</span>(<span class="hljs-title class_ inherited__">PaymentStrategy</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, balance_cents: <span class="hljs-built_in">int</span></span>):
+        <span class="hljs-variable language_">self</span>.balance_cents = balance_cents
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">pay</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-keyword">if</span> amount_cents &gt; <span class="hljs-variable language_">self</span>.balance_cents:
+            <span class="hljs-keyword">return</span> <span class="hljs-literal">False</span>
+        <span class="hljs-variable language_">self</span>.balance_cents -= amount_cents
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Charging wallet: <span class="hljs-subst">{amount_cents}</span> cents, remaining <span class="hljs-subst">{self.balance_cents}</span>&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Checkout</span>:
+    <span class="hljs-string">&quot;&quot;&quot;Doesn&#x27;t know or care which payment method it&#x27;s using — just calls the interface.&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, strategy: PaymentStrategy</span>):
+        <span class="hljs-variable language_">self</span>._strategy = strategy
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">set_strategy</span>(<span class="hljs-params">self, strategy: PaymentStrategy</span>) -&gt; <span class="hljs-literal">None</span>:
+        <span class="hljs-variable language_">self</span>._strategy = strategy
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">checkout</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>._strategy.pay(amount_cents)
+
+<span class="hljs-comment"># --- usage: same Checkout, swappable strategy chosen at runtime ---</span>
+checkout = Checkout(CreditCardStrategy(<span class="hljs-string">&quot;4111111111111111&quot;</span>))
+checkout.checkout(<span class="hljs-number">4999</span>)
+
+checkout.set_strategy(WalletStrategy(balance_cents=<span class="hljs-number">10000</span>))
+checkout.checkout(<span class="hljs-number">4999</span>)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">PaymentStrategy</span> {
+    <span class="hljs-type">boolean</span> <span class="hljs-title function_">pay</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">CreditCardStrategy</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentStrategy</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String cardNumber;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">CreditCardStrategy</span><span class="hljs-params">(String cardNumber)</span> { <span class="hljs-built_in">this</span>.cardNumber = cardNumber; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">pay</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span> {
+        System.out.println(<span class="hljs-string">&quot;Charging card ending &quot;</span> + cardNumber.substring(cardNumber.length() - <span class="hljs-number">4</span>) + <span class="hljs-string">&quot;: &quot;</span> + amountCents + <span class="hljs-string">&quot; cents&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PayPalStrategy</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentStrategy</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String email;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">PayPalStrategy</span><span class="hljs-params">(String email)</span> { <span class="hljs-built_in">this</span>.email = email; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">pay</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span> {
+        System.out.println(<span class="hljs-string">&quot;Charging PayPal account &quot;</span> + email + <span class="hljs-string">&quot;: &quot;</span> + amountCents + <span class="hljs-string">&quot; cents&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">WalletStrategy</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentStrategy</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> balanceCents;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">WalletStrategy</span><span class="hljs-params">(<span class="hljs-type">int</span> balanceCents)</span> { <span class="hljs-built_in">this</span>.balanceCents = balanceCents; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">pay</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span> {
+        <span class="hljs-keyword">if</span> (amountCents &gt; balanceCents) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+        balanceCents -= amountCents;
+        System.out.println(<span class="hljs-string">&quot;Charging wallet: &quot;</span> + amountCents + <span class="hljs-string">&quot; cents, remaining &quot;</span> + balanceCents);
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+}
+
+<span class="hljs-comment">// Doesn&#x27;t know or care which payment method it&#x27;s using — just calls the interface.</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Checkout</span> {
+    <span class="hljs-keyword">private</span> PaymentStrategy strategy;
+    <span class="hljs-keyword">public</span> <span class="hljs-title function_">Checkout</span><span class="hljs-params">(PaymentStrategy strategy)</span> { <span class="hljs-built_in">this</span>.strategy = strategy; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setStrategy</span><span class="hljs-params">(PaymentStrategy strategy)</span> { <span class="hljs-built_in">this</span>.strategy = strategy; }
+
+    <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">checkout</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span> {
+        <span class="hljs-keyword">return</span> strategy.pay(amountCents);
+    }
+}
+
+<span class="hljs-comment">// --- usage: same Checkout, swappable strategy chosen at runtime ---</span>
+<span class="hljs-comment">// Checkout checkout = new Checkout(new CreditCardStrategy(&quot;4111111111111111&quot;));</span>
+<span class="hljs-comment">// checkout.checkout(4999);</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// checkout.setStrategy(new WalletStrategy(10000));</span>
+<span class="hljs-comment">// checkout.checkout(4999);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> in Python, a simple function reference or lambda can sometimes substitute for a full
+<code>PaymentStrategy</code> class when the strategy is stateless — Python treats functions as first-class objects, so
+<code>checkout = Checkout(pay_with_credit_card)</code> is a lightweight, common variant. Java can achieve the same lightweight
+style with a functional interface and lambdas (<code>PaymentStrategy strategy = amount -&gt; {...}</code>) since <code>PaymentStrategy</code>
+here has exactly one abstract method.</p>
+<h2>How to identify when to use it</h2>
+<p>Look for a method with a branch (<code>if</code>/<code>switch</code>) that selects between several ways of doing conceptually the <em>same</em>
+job (computing a price, validating input, routing a request, paying for something). If the branches don’t know about
+each other and the caller picks one explicitly, that’s Strategy.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>New algorithms/strategies are added without touching existing ones (ties to <a href="/lld-patterns-hub/solid/ocp/">OCP</a>)</li>
+<li>Each strategy is independently testable</li>
+<li>Strategies can be swapped at runtime, even mid-session</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Adds a class per algorithm, which is overkill for two or three simple, stable branches</li>
+<li>Client code must know which strategy to select — that selection logic has to live somewhere (often a factory)</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Multiple interchangeable ways to perform the same task, selected by configuration or user choice.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>A fixed, small set of options that will realistically never grow doesn’t need the ceremony of an interface plus one
+class per option.</li>
+</ul>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>Strategy is nearly identical in shape to <a href="/lld-patterns-hub/behavioral/state/">State</a> — see the
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a> for the exact distinction (who chooses the implementation, and
+whether the implementations know about each other).</p>
+</div>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/behavioral/state/">State</a> — nearly identical structure, different intent: State’s implementations transition between each other; Strategy’s are chosen explicitly and independently.</li>
+<li><a href="/lld-patterns-hub/creational/factory-method/">Factory Method</a> — often used to decide which concrete strategy to construct.</li>
+<li><a href="/lld-patterns-hub/solid/ocp/">Open/Closed Principle</a> — Strategy is the primary behavioral pattern for satisfying OCP when the varying part is “which algorithm runs.”</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<span></span>
+<a href="/lld-patterns-hub/behavioral/observer/" class="to-next"><div class="dir">Next →</div><div>Observer</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

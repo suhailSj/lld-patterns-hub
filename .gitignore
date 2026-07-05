@@ -1,9 +1,8 @@
-# build output
-dist/
-.astro/
-
 # dependencies
 node_modules/
+
+# NOTE: docs/ (the generated site) is intentionally NOT ignored — it's
+# committed so GitHub Pages can serve it directly with no build step.
 
 # logs
 npm-debug.log*

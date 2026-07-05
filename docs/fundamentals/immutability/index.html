@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Immutability · LLD Patterns Hub</title>
+<meta name="description" content="Objects whose state can't change after construction — fewer bugs from shared mutable state, at the cost of creating new objects instead of mutating existing ones." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Immutability · LLD Patterns Hub" />
+<meta property="og:description" content="Objects whose state can't change after construction — fewer bugs from shared mutable state, at the cost of creating new objects instead of mutating existing ones." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/" aria-current="page">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 LLD Fundamentals</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>LLD Fundamentals</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/oop-pillars/">Abstraction, Encapsulation & Polymorphism</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/">Interfaces vs. Abstract Classes</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/immutability/" aria-current="page">Immutability</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/">Cohesion and Coupling</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interview-tips/">Common LLD Interview Tips</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/fundamentals/">LLD Fundamentals</a> / Immutability</p>
+
+    <article class="prose">
+      <h1>Immutability</h1>
+      <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">concurrency</span><span class="tag">money handling</span></div>
+      <p class="summary-lede">Objects whose state can't change after construction — fewer bugs from shared mutable state, at the cost of creating new objects instead of mutating existing ones.</p>
+<h2>Intent / definition</h2>
+<p>An <strong>immutable</strong> object’s state is fixed at construction and can never change afterward. Instead of mutating an
+object in place, operations that “change” it return a <em>new</em> object with the updated state, leaving the original
+untouched. This eliminates an entire category of bugs caused by unexpected, shared, in-place mutation.</p>
+<h2>Problem statement</h2>
+<p>A <code>Money</code> value (an amount + currency) is passed around a billing system: added to totals, multiplied by tax rates,
+compared for equality, stored in multiple places at once (a cart, a receipt, an audit log). If <code>Money</code> is mutable,
+any one of those places could accidentally change the amount the others are relying on.</p>
+<h2>Why the naive (mutable) approach fails</h2>
+<div class="callout pitfall">
+<div class="callout-title">🚫 Shared references, silent corruption</div>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code>receipt_total = Money(<span class="hljs-number">100</span>, <span class="hljs-string">&quot;USD&quot;</span>)
+cart_total = receipt_total          <span class="hljs-comment"># NOT a copy — same object</span>
+cart_total.amount += <span class="hljs-number">25</span>             <span class="hljs-comment"># oops: this also changed receipt_total!</span>
+</code></pre>
+<p>Because <code>cart_total</code> and <code>receipt_total</code> point at the <em>same</em> mutable object, an innocent-looking update to one
+silently corrupts the other. Bugs like this are notoriously hard to trace because the mutation and the place it’s
+observed can be far apart in the codebase, and nothing about the code above looks obviously wrong.</p>
+</div>
+<h2>Solution overview</h2>
+<p>Make <code>Money</code> immutable: its amount and currency are set once, in the constructor, and never changed afterward. An
+operation like <code>add(other)</code> returns a <strong>new</strong> <code>Money</code> instance rather than mutating <code>self</code>. Now <code>cart_total = receipt_total.add(Money(25, &quot;USD&quot;))</code> can never affect <code>receipt_total</code>, because nothing ever mutates an existing
+<code>Money</code> object — every “change” produces a distinct object.</p>
+<h2>Python example</h2>
+<pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> dataclasses <span class="hljs-keyword">import</span> dataclass
+
+<span class="hljs-meta">@dataclass(<span class="hljs-params">frozen=<span class="hljs-literal">True</span></span>)  </span><span class="hljs-comment"># frozen=True raises if any field is reassigned after construction</span>
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">Money</span>:
+    amount_cents: <span class="hljs-built_in">int</span>
+    currency: <span class="hljs-built_in">str</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">add</span>(<span class="hljs-params">self, other: <span class="hljs-string">&quot;Money&quot;</span></span>) -&gt; <span class="hljs-string">&quot;Money&quot;</span>:
+        <span class="hljs-keyword">if</span> <span class="hljs-variable language_">self</span>.currency != other.currency:
+            <span class="hljs-keyword">raise</span> ValueError(<span class="hljs-string">&quot;Cannot add different currencies&quot;</span>)
+        <span class="hljs-keyword">return</span> Money(<span class="hljs-variable language_">self</span>.amount_cents + other.amount_cents, <span class="hljs-variable language_">self</span>.currency)  <span class="hljs-comment"># returns a NEW instance</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">multiply</span>(<span class="hljs-params">self, factor: <span class="hljs-built_in">float</span></span>) -&gt; <span class="hljs-string">&quot;Money&quot;</span>:
+        <span class="hljs-keyword">return</span> Money(<span class="hljs-built_in">round</span>(<span class="hljs-variable language_">self</span>.amount_cents * factor), <span class="hljs-variable language_">self</span>.currency)
+
+<span class="hljs-comment"># --- usage ---</span>
+receipt_total = Money(<span class="hljs-number">10000</span>, <span class="hljs-string">&quot;USD&quot;</span>)
+cart_total = receipt_total.add(Money(<span class="hljs-number">2500</span>, <span class="hljs-string">&quot;USD&quot;</span>))
+
+<span class="hljs-built_in">print</span>(receipt_total.amount_cents)  <span class="hljs-comment"># 10000 — untouched</span>
+<span class="hljs-built_in">print</span>(cart_total.amount_cents)     <span class="hljs-comment"># 12500 — a brand new object</span>
+
+<span class="hljs-keyword">try</span>:
+    receipt_total.amount_cents = <span class="hljs-number">0</span>  <span class="hljs-comment"># raises: frozen dataclasses reject attribute assignment</span>
+<span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> e:
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Blocked: <span class="hljs-subst">{e}</span>&quot;</span>)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Money</span> {
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> amountCents; <span class="hljs-comment">// `final` fields set once, in the constructor, never reassigned</span>
+    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> String currency;
+
+    Money(<span class="hljs-type">long</span> amountCents, String currency) {
+        <span class="hljs-built_in">this</span>.amountCents = amountCents;
+        <span class="hljs-built_in">this</span>.currency = currency;
+    }
+
+    Money <span class="hljs-title function_">add</span><span class="hljs-params">(Money other)</span> {
+        <span class="hljs-keyword">if</span> (!currency.equals(other.currency)) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;Cannot add different currencies&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Money</span>(<span class="hljs-built_in">this</span>.amountCents + other.amountCents, currency); <span class="hljs-comment">// returns a NEW instance</span>
+    }
+
+    Money <span class="hljs-title function_">multiply</span><span class="hljs-params">(<span class="hljs-type">double</span> factor)</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Money</span>(Math.round(amountCents * factor), currency);
+    }
+
+    <span class="hljs-type">long</span> <span class="hljs-title function_">getAmountCents</span><span class="hljs-params">()</span> { <span class="hljs-keyword">return</span> amountCents; }
+}
+
+<span class="hljs-comment">// --- usage ---</span>
+<span class="hljs-comment">// Money receiptTotal = new Money(10000, &quot;USD&quot;);</span>
+<span class="hljs-comment">// Money cartTotal = receiptTotal.add(new Money(2500, &quot;USD&quot;));</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// System.out.println(receiptTotal.getAmountCents()); // 10000 — untouched</span>
+<span class="hljs-comment">// System.out.println(cartTotal.getAmountCents());    // 12500 — a brand new object</span>
+<span class="hljs-comment">//</span>
+<span class="hljs-comment">// // There&#x27;s no setter at all — the compiler prevents mutation, there&#x27;s nothing to &quot;block&quot; at runtime.</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Python’s <code>@dataclass(frozen=True)</code> raises a <code>FrozenInstanceError</code> at <em>runtime</em> if you try to
+reassign a field — it’s enforced, but only when the assignment is attempted. Java’s <code>final</code> fields with no setters
+are enforced at <em>compile time</em> — code that tries to reassign a <code>final</code> field simply won’t compile. Java’s
+<code>record</code> type (used elsewhere on this site, e.g. in <a href="/lld-patterns-hub/solid/dip/">DIP</a>) is an even more
+concise way to get the same immutable-value-object behavior for simple data carriers.</p>
+<h2>Real-world example</h2>
+<p><code>java.lang.String</code> and Python’s <code>str</code>/<code>tuple</code> are immutable by design in both languages’ standard libraries — every
+“modification” (<code>s.upper()</code>, <code>s + &quot;!&quot;</code>) returns a new string, leaving the original untouched. This is precisely why
+strings are safe to share freely across threads and function calls without defensive copying.</p>
+<h2>Pros</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Pros</h4>
+<ul>
+<li>Eliminates accidental shared-mutation bugs entirely — there's nothing to mutate</li>
+<li>Safe to share across threads without locks, since no thread can ever change the object's state</li>
+<li>Makes reasoning about code easier — an object's value is fixed for its entire lifetime</li>
+</ul>
+</div>
+<div>
+<h4>❌ Cons / tradeoffs</h4>
+<ul>
+<li>Every "change" allocates a new object, which can add memory/GC pressure for very hot code paths</li>
+<li>Deeply nested immutable structures can make small updates verbose (needing to reconstruct several layers)</li>
+</ul>
+</div>
+</div>
+<h2>When to use</h2>
+<ul>
+<li>Value objects shared widely across a codebase (money, dates, coordinates, configuration snapshots).</li>
+<li>Anything shared across threads, where mutable shared state would require locking.</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>High-frequency, performance-sensitive mutation of large objects (e.g. a game’s per-frame physics state) is often
+better served by controlled, well-encapsulated mutability than by reallocating every frame.</li>
+</ul>
+<div class="callout tip">
+<div class="callout-title">💡 Interview framing</div>
+<p>If asked to design a value type shared across a system (money, a coordinate, a date range), proposing immutability
+up front — and explaining <em>why</em> with a shared-mutation bug example like the one above — is usually exactly
+what’s being tested.</p>
+</div>
+<h2>Interview talking points</h2>
+<ul>
+<li>Connect immutability directly to thread-safety: immutable objects require no synchronization, because there’s no
+mutable state to race on.</li>
+<li>Mention that <a href="/lld-patterns-hub/creational/builder/">Builder</a> is one of the most common ways to construct a
+complex immutable object without an unwieldy constructor.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/creational/builder/">Builder</a> — a common technique for producing immutable objects that need multi-step, flexible construction.</li>
+<li><a href="/lld-patterns-hub/creational/prototype/">Prototype</a> — immutable objects sidestep the deep-vs-shallow-copy pitfalls Prototype has to worry about, since there’s no mutable state to accidentally share.</li>
+<li><a href="/lld-patterns-hub/fundamentals/oop-pillars/">Encapsulation</a> — immutability is encapsulation taken to its logical extreme: not just controlled mutation, but no mutation at all.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/"><div class="dir">← Previous</div><div>Interfaces vs. Abstract Classes</div></a>
+<a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/" class="to-next"><div class="dir">Next →</div><div>Cohesion and Coupling</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>

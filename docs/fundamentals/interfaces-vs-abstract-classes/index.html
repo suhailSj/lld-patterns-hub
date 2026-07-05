@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Interfaces vs. Abstract Classes · LLD Patterns Hub</title>
+<meta name="description" content="Two mechanisms for defining a shared contract — pure interfaces vs. abstract classes that also share implementation — and when to reach for each." />
+<meta name="theme-color" content="#4f46e5" />
+<link rel="icon" type="image/svg+xml" href="/lld-patterns-hub/favicon.svg" />
+<link rel="stylesheet" href="/lld-patterns-hub/styles.css" />
+<meta property="og:title" content="Interfaces vs. Abstract Classes · LLD Patterns Hub" />
+<meta property="og:description" content="Two mechanisms for defining a shared contract — pure interfaces vs. abstract classes that also share implementation — and when to reach for each." />
+<meta property="og:type" content="website" />
+<script>
+(function () {
+  var saved = localStorage.getItem('lld-theme');
+  var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
+</head>
+<body>
+<a class="visually-hidden" href="#main-content">Skip to content</a>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/lld-patterns-hub/">
+      <span class="logo-mark">🧠</span>
+      <span>LLD Patterns Hub</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+<a href="/lld-patterns-hub/">Home</a>
+<a href="/lld-patterns-hub/fundamentals/" aria-current="page">Fundamentals</a>
+<a href="/lld-patterns-hub/solid/">SOLID</a>
+<a href="/lld-patterns-hub/creational/">Creational</a>
+<a href="/lld-patterns-hub/structural/">Structural</a>
+<a href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a href="/lld-patterns-hub/about/">About</a>
+    </nav>
+
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
+      <button id="nav-toggle" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="false">☰</button>
+    </div>
+  </div>
+
+  <div id="nav-drawer">
+<a class="drawer-link" href="/lld-patterns-hub/">Home</a>
+<a class="drawer-link" href="/lld-patterns-hub/fundamentals/">Fundamentals</a>
+<a class="drawer-link" href="/lld-patterns-hub/solid/">SOLID</a>
+<a class="drawer-link" href="/lld-patterns-hub/creational/">Creational</a>
+<a class="drawer-link" href="/lld-patterns-hub/structural/">Structural</a>
+<a class="drawer-link" href="/lld-patterns-hub/behavioral/">Behavioral</a>
+<a class="drawer-link" href="/lld-patterns-hub/cheatsheet/">Cheat Sheet</a>
+<a class="drawer-link" href="/lld-patterns-hub/about/">About</a>
+  </div>
+</header>
+
+<main id="main-content">
+
+<div class="layout-shell">
+  <aside class="sidebar" id="pattern-sidebar">
+    <button class="sidebar-toggle" aria-expanded="false">
+      <span>📖 LLD Fundamentals</span>
+      <span aria-hidden="true">▾</span>
+    </button>
+    <h4>LLD Fundamentals</h4>
+    <ul class="sidebar-list">
+<li><a href="/lld-patterns-hub/fundamentals/composition-vs-inheritance/">Composition vs. Inheritance</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/oop-pillars/">Abstraction, Encapsulation & Polymorphism</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/dependency-injection/">Dependency Injection</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interfaces-vs-abstract-classes/" aria-current="page">Interfaces vs. Abstract Classes</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/immutability/">Immutability</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/cohesion-and-coupling/">Cohesion and Coupling</a></li>
+<li><a href="/lld-patterns-hub/fundamentals/interview-tips/">Common LLD Interview Tips</a></li>
+    </ul>
+  </aside>
+
+  <div class="content">
+    <p class="breadcrumb"><a href="/lld-patterns-hub/">Home</a> / <a href="/lld-patterns-hub/fundamentals/">LLD Fundamentals</a> / Interfaces vs. Abstract Classes</p>
+
+    <article class="prose">
+      <h1>Interfaces vs. Abstract Classes</h1>
+      <div class="pattern-meta"><span class="tag">Fundamentals</span><span class="tag">OOP</span><span class="tag">payment processing</span></div>
+      <p class="summary-lede">Two mechanisms for defining a shared contract — pure interfaces vs. abstract classes that also share implementation — and when to reach for each.</p>
+<h2>Intent / definition</h2>
+<p>Both interfaces and abstract classes let you define a contract that multiple concrete classes implement — but they
+differ in what else they can carry. A pure <strong>interface</strong> defines only method signatures (a promise: “anything
+implementing me has these methods”). An <strong>abstract class</strong> can define the same contract <em>and</em> provide real,
+shared implementation that subclasses inherit, alongside abstract methods subclasses must still fill in.</p>
+<h2>Problem statement</h2>
+<p>Several payment processors (Stripe, PayPal, a legacy gateway) all need to expose <code>charge(amount)</code>. Additionally,
+every processor should log a standardized message before and after charging — logic that’s identical across all of
+them and shouldn’t be copy-pasted into each class.</p>
+<h2>Solution overview</h2>
+<p>Use an abstract class when there’s real, shared implementation to inherit (the logging wrapper here); use a pure
+interface when you’re only defining a contract with no shared code. A class can also combine both: implement a small
+interface (for maximum flexibility in what else it can extend) while a separate abstract base class supplies default
+behavior.</p>
+<h2>Class / object design</h2>
+<pre class="hljs" data-language="plaintext"><code>      «interface»                       AbstractPaymentProcessor (abstract class)
+    PaymentProcessor                     - implements PaymentProcessor
+   + charge(amount): bool                - charge(amount): wraps logging around chargeInternal(amount)
+          ▲                              - chargeInternal(amount): abstract — subclasses must implement
+          │ implements                             ▲
+   AbstractPaymentProcessor (implements, provides shared logging)
+                                    ┌─────┴──────┐
+                              StripeProcessor  PayPalProcessor
+                              (only implement chargeInternal — logging is free)
+</code></pre>
+<h2>Python example</h2>
+<p>Python’s <code>abc</code> module supports both styles: an <code>ABC</code> with only <code>@abstractmethod</code>s behaves like a pure interface; an
+<code>ABC</code> with a mix of concrete and abstract methods behaves like an abstract class.</p>
+<div class="code-tabs">
+  <div class="code-tabs-header" role="tablist">
+    <button class="tab-btn" type="button" data-lang="python" role="tab">🐍 Python</button>
+    <button class="tab-btn" type="button" data-lang="java" role="tab">☕ Java</button>
+  </div>
+  <div class="code-tabs-body">
+    <pre class="hljs" data-language="python"><code><span class="hljs-keyword">from</span> abc <span class="hljs-keyword">import</span> ABC, abstractmethod
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PaymentProcessor</span>(<span class="hljs-title class_ inherited__">ABC</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Pure interface: only a contract, no shared implementation.&quot;&quot;&quot;</span>
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">charge</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>: ...
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">AbstractPaymentProcessor</span>(<span class="hljs-title class_ inherited__">PaymentProcessor</span>):
+    <span class="hljs-string">&quot;&quot;&quot;Abstract class: implements the interface AND shares real logic (logging).&quot;&quot;&quot;</span>
+
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">charge</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[log] charging <span class="hljs-subst">{amount_cents}</span> cents...&quot;</span>)
+        result = <span class="hljs-variable language_">self</span>._charge_internal(amount_cents)
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;[log] charge <span class="hljs-subst">{<span class="hljs-string">&#x27;succeeded&#x27;</span> <span class="hljs-keyword">if</span> result <span class="hljs-keyword">else</span> <span class="hljs-string">&#x27;failed&#x27;</span>}</span>&quot;</span>)
+        <span class="hljs-keyword">return</span> result
+
+<span class="hljs-meta">    @abstractmethod</span>
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_charge_internal</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-string">&quot;&quot;&quot;Subclasses only need to implement the actual charging logic.&quot;&quot;&quot;</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">StripeProcessor</span>(<span class="hljs-title class_ inherited__">AbstractPaymentProcessor</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_charge_internal</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;Stripe: charging <span class="hljs-subst">{amount_cents}</span> cents&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PayPalProcessor</span>(<span class="hljs-title class_ inherited__">AbstractPaymentProcessor</span>):
+    <span class="hljs-keyword">def</span> <span class="hljs-title function_">_charge_internal</span>(<span class="hljs-params">self, amount_cents: <span class="hljs-built_in">int</span></span>) -&gt; <span class="hljs-built_in">bool</span>:
+        <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;PayPal: charging <span class="hljs-subst">{amount_cents}</span> cents&quot;</span>)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">True</span>
+
+<span class="hljs-comment"># --- usage: both processors get logging &quot;for free&quot; from the shared abstract class ---</span>
+StripeProcessor().charge(<span class="hljs-number">4999</span>)
+PayPalProcessor().charge(<span class="hljs-number">4999</span>)
+</code></pre>
+    <pre class="hljs" data-language="java"><code><span class="hljs-keyword">interface</span> <span class="hljs-title class_">PaymentProcessor</span> {
+    <span class="hljs-comment">// Pure interface: only a contract, no shared implementation.</span>
+    <span class="hljs-type">boolean</span> <span class="hljs-title function_">charge</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span>;
+}
+
+<span class="hljs-keyword">abstract</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AbstractPaymentProcessor</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">PaymentProcessor</span> {
+    <span class="hljs-comment">// Abstract class: implements the interface AND shares real logic (logging).</span>
+    <span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">charge</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span> {
+        System.out.println(<span class="hljs-string">&quot;[log] charging &quot;</span> + amountCents + <span class="hljs-string">&quot; cents...&quot;</span>);
+        <span class="hljs-type">boolean</span> <span class="hljs-variable">result</span> <span class="hljs-operator">=</span> chargeInternal(amountCents);
+        System.out.println(<span class="hljs-string">&quot;[log] charge &quot;</span> + (result ? <span class="hljs-string">&quot;succeeded&quot;</span> : <span class="hljs-string">&quot;failed&quot;</span>));
+        <span class="hljs-keyword">return</span> result;
+    }
+
+    <span class="hljs-comment">// Subclasses only need to implement the actual charging logic.</span>
+    <span class="hljs-keyword">protected</span> <span class="hljs-keyword">abstract</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">chargeInternal</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span>;
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">StripeProcessor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">AbstractPaymentProcessor</span> {
+    <span class="hljs-keyword">protected</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">chargeInternal</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span> {
+        System.out.println(<span class="hljs-string">&quot;Stripe: charging &quot;</span> + amountCents + <span class="hljs-string">&quot; cents&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+}
+
+<span class="hljs-keyword">class</span> <span class="hljs-title class_">PayPalProcessor</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">AbstractPaymentProcessor</span> {
+    <span class="hljs-keyword">protected</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">chargeInternal</span><span class="hljs-params">(<span class="hljs-type">int</span> amountCents)</span> {
+        System.out.println(<span class="hljs-string">&quot;PayPal: charging &quot;</span> + amountCents + <span class="hljs-string">&quot; cents&quot;</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+}
+
+<span class="hljs-comment">// --- usage: both processors get logging &quot;for free&quot; from the shared abstract class ---</span>
+<span class="hljs-comment">// new StripeProcessor().charge(4999);</span>
+<span class="hljs-comment">// new PayPalProcessor().charge(4999);</span>
+</code></pre>
+  </div>
+</div>
+<p><strong>Language notes:</strong> Java has always drawn a hard structural line between <code>interface</code> (originally no implementation
+at all; modern Java allows <code>default</code> methods with limited shared code) and <code>abstract class</code> (full shared
+implementation, but only single inheritance — a class can extend just one abstract class but implement many
+interfaces). Python doesn’t have a separate <code>interface</code> keyword at all: everything is a class, and whether something
+“is an interface” is a matter of convention — an <code>ABC</code> with only abstract methods and no concrete state. Python also
+supports <code>Protocol</code> (structural typing, “duck typing with type hints”) as a third option: a class satisfies a
+<code>Protocol</code> just by having the right methods, with no explicit <code>implements</code>/inheritance declaration needed at all.</p>
+<h2>Real-world example</h2>
+<p>Java’s <code>Comparable&lt;T&gt;</code> is a pure interface (just <code>compareTo</code>); <code>AbstractList</code> in <code>java.util</code> is an abstract class
+that implements most of <code>List</code>’s behavior in terms of a few abstract methods subclasses must provide (<code>get(index)</code>,
+<code>size()</code>), exactly like <code>AbstractPaymentProcessor</code> above.</p>
+<h2>Pros and cons</h2>
+<div class="pros-cons">
+<div>
+<h4>✅ Interfaces</h4>
+<ul>
+<li>A class can implement many interfaces (no single-inheritance limit)</li>
+<li>Maximally flexible — pure contract, zero coupling to shared implementation</li>
+<li>Ideal for <a href="/lld-patterns-hub/solid/isp/">ISP</a>-style small, focused roles</li>
+</ul>
+</div>
+<div>
+<h4>✅ Abstract classes</h4>
+<ul>
+<li>Share real implementation across subclasses — no copy-pasted logic</li>
+<li>Can hold shared state (fields), which interfaces (mostly) cannot</li>
+<li>Good fit when subclasses are genuinely variations on one shared algorithm (see <a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a>)</li>
+</ul>
+</div>
+</div>
+<h2>When to use which</h2>
+<ul>
+<li>Use a pure interface when you only need to guarantee a shared method signature, and implementers might not share
+any other code or state.</li>
+<li>Use an abstract class when several implementers share real, identical logic that would otherwise be duplicated —
+and you’re comfortable with the single-inheritance constraint that comes with it.</li>
+<li>Many real designs use both: a small interface for maximum flexibility, plus an optional abstract base class that
+implements it and provides convenient shared defaults (exactly as shown above).</li>
+</ul>
+<h2>When to avoid</h2>
+<ul>
+<li>Don’t reach for an abstract class purely to share a couple of trivial one-line helper methods — a standalone
+utility function/class avoids the inheritance coupling entirely.</li>
+</ul>
+<h2>Interview talking points</h2>
+<ul>
+<li>State the core distinguishing question plainly: “do implementers need to share actual code, or just a signature?”</li>
+<li>Mention Java’s single-inheritance constraint on abstract classes as the main practical tradeoff driving the choice.</li>
+<li>If discussing Python, bring up <code>Protocol</code> as evidence you understand structural vs. nominal typing, not just the
+<code>ABC</code> mechanism.</li>
+</ul>
+<h2>Related patterns</h2>
+<ul>
+<li><a href="/lld-patterns-hub/solid/isp/">Interface Segregation Principle</a> — favors small, focused interfaces over large ones.</li>
+<li><a href="/lld-patterns-hub/behavioral/template-method/">Template Method</a> — the pattern most directly built on abstract classes sharing real implementation.</li>
+<li><a href="/lld-patterns-hub/solid/lsp/">Liskov Substitution Principle</a> — applies to both interfaces and abstract classes: any implementer/subclass must honor the contract’s promises.</li>
+</ul>
+
+    </article>
+
+    
+<nav class="pattern-pager" aria-label="Pattern navigation">
+<a href="/lld-patterns-hub/fundamentals/dependency-injection/"><div class="dir">← Previous</div><div>Dependency Injection</div></a>
+<a href="/lld-patterns-hub/fundamentals/immutability/" class="to-next"><div class="dir">Next →</div><div>Immutability</div></a>
+</nav>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <span>© 2026 LLD Patterns Hub · Built for interview prep &amp; real-world design practice.</span>
+    <span><a href="https://github.com/" target="_blank" rel="noopener noreferrer">View on GitHub</a></span>
+  </div>
+</footer>
+
+<script src="/lld-patterns-hub/site.js"></script>
+</body>
+</html>
